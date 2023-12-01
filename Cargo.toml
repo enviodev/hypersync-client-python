@@ -5,7 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
+name = "hypersync_client"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.19.0"
+pyo3 = { version = "0.20", features = ["extension-module"] }
+pyo3-asyncio = { version = "0.20", features = ["tokio-runtime"] }
+tokio = "1.9"
+
+serde_json = "1"
+
+skar-client = "0.4.0"
+skar-net-types = "0.1.0"
+skar-format = "0.1.0"
