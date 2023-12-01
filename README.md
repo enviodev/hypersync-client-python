@@ -1,2 +1,2 @@
 # hypersync-client-python
-Python package for the HyperSync client written in Rust
+Python package for [Envio's](https://envio.dev/) HyperSync client written in Rust
