@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 jobs:
-  linux:
+  linux-x86_64:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -37,7 +37,7 @@ jobs:
           name: wheels
           path: dist
     
-    linux:
+    linux-aarch64:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v3
