@@ -5,8 +5,6 @@ async def main():
 
     client = hypersync_client.HypersyncClient(
         "https://eth.hypersync.xyz",
-        None,
-        None
     )
 
     height = await client.get_height()
@@ -65,6 +63,9 @@ async def main():
     print(query)
 
     # res = await client.send_req(query)
+    # print(res)
+     
+    
     await client.create_parquet_folder(query, "data")
     print("finished writing parquet folder")
 

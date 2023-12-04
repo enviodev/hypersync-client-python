@@ -51,8 +51,6 @@ impl HypersyncClient {
     }
 
     /// Get the height of the source hypersync instance
-    // TODO: figure out what side effects Python<'_> brings (PyO3 GIL guard)
-    // TODO: can I maybe do PyResult<u64> instead of <&PyAny>?
     pub fn get_height<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
         let inner = Arc::clone(&self.inner);
         future_into_py::<_, u64>(py, async move {
@@ -73,8 +71,6 @@ impl HypersyncClient {
     ///. the server.
     ///
     /// Path should point to a folder that will contain the parquet files in the end.
-    // TODO: figure out what side effects Python<'_> brings
-    // TODO: if this errors will it return the error properly?
     pub fn create_parquet_folder<'py>(
         &'py self,
         query: Query,
@@ -84,9 +80,15 @@ impl HypersyncClient {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
-            create_parquet_folder_impl(inner, query, path)
+            let query = query
+                .try_convert()
+                .map_err(|e| PyValueError::new_err("parsing query"))?;
+
+            inner
+                .create_parquet_folder(query, path)
                 .await
                 .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
+
             Ok(())
         })
     }
@@ -94,15 +96,23 @@ impl HypersyncClient {
     /// Send a query request to the source hypersync instance.
     ///
     /// Returns a query response which contains block, tx and log data.
-    // TODO: figure out what side effects Python<'_> brings
-    // TODO: can I instead return PyResult<QueryResponse>
     pub fn send_req<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<&'py PyAny> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py::<_, QueryResponse>(py, async move {
-            send_req_impl(inner, query)
+            let query = query
+                .try_convert()
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
+            let res = inner
+                .send::<skar_client::ArrowIpc>(&query)
                 .await
-                .map_err(|e| PyIOError::new_err(format!("{:?}", e)))
+                .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
+
+            let res = convert_response_to_query_response(res)
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
+            Ok(res)
         })
     }
 
@@ -114,80 +124,43 @@ impl HypersyncClient {
         let inner = Arc::clone(&self.inner);
 
         future_into_py::<_, Events>(py, async move {
-            send_events_req_impl(inner, query)
+            let mut query = query
+                .try_convert()
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
+            if !query.field_selection.block.is_empty() {
+                for field in BLOCK_JOIN_FIELDS.iter() {
+                    query.field_selection.block.insert(field.to_string());
+                }
+            }
+
+            if !query.field_selection.transaction.is_empty() {
+                for field in TX_JOIN_FIELDS.iter() {
+                    query.field_selection.transaction.insert(field.to_string());
+                }
+            }
+
+            if !query.field_selection.log.is_empty() {
+                for field in LOG_JOIN_FIELDS.iter() {
+                    query.field_selection.log.insert(field.to_string());
+                }
+            }
+
+            let res = inner
+                .send::<skar_client::ArrowIpc>(&query)
                 .await
-                .map_err(|e| PyIOError::new_err(format!("{:?}", e)))
+                .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
+
+            let res = convert_response_to_events(res)
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
+            Ok(res)
+
+            // send_events_req_impl(inner, query)
+            //     .await
+            //     .map_err(|e| PyIOError::new_err(format!("{:?}", e)))
         })
     }
-}
-
-// TODO: remove this, make it part of `create_partquet folder`
-// had to move outside impl because impl is designated as #[pymodule] but this isn't a python function
-async fn create_parquet_folder_impl(
-    hypersync_client_inner: Arc<skar_client::Client>,
-    query: Query,
-    path: String,
-) -> Result<()> {
-    let query = query.try_convert().context("parse query")?;
-
-    hypersync_client_inner
-        .create_parquet_folder(query, path)
-        .await
-        .context("create parquet folder")?;
-
-    Ok(())
-}
-
-// TODO: remove this, make it part of `send_req`
-// had to move outside impl because impl is designated as #[pymodule] but this isn't a python function
-async fn send_req_impl(
-    hypersync_client_inner: Arc<skar_client::Client>,
-    query: Query,
-) -> Result<QueryResponse> {
-    let query = query.try_convert().context("parse query")?;
-
-    let res = hypersync_client_inner
-        .send::<skar_client::ArrowIpc>(&query)
-        .await
-        .context("execute query")?;
-    let res = convert_response_to_query_response(res).context("convert response to js format")?;
-
-    Ok(res)
-}
-
-// TODO: remove this, make it part of `send_events_req`
-// had to move outside impl because impl is designated as #[pymodule] but this isn't a python function
-async fn send_events_req_impl(
-    hypersync_client_inner: Arc<skar_client::Client>,
-    query: Query,
-) -> Result<Events> {
-    let mut query = query.try_convert().context("parse query")?;
-
-    if !query.field_selection.block.is_empty() {
-        for field in BLOCK_JOIN_FIELDS.iter() {
-            query.field_selection.block.insert(field.to_string());
-        }
-    }
-
-    if !query.field_selection.transaction.is_empty() {
-        for field in TX_JOIN_FIELDS.iter() {
-            query.field_selection.transaction.insert(field.to_string());
-        }
-    }
-
-    if !query.field_selection.log.is_empty() {
-        for field in LOG_JOIN_FIELDS.iter() {
-            query.field_selection.log.insert(field.to_string());
-        }
-    }
-
-    let res = hypersync_client_inner
-        .send::<skar_client::ArrowIpc>(&query)
-        .await
-        .context("execute query")?;
-    let res = convert_response_to_events(res).context("convert response to js format")?;
-
-    Ok(res)
 }
 
 #[pyclass]
