@@ -33,7 +33,7 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: 'true'
           manylinux: auto
-          before-script-linux: apt-get install -y capnproto libcapnp-dev
+          before-script-linux: dnf install -y capnproto capnproto-devel
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
