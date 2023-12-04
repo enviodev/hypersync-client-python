@@ -1,9 +1,14 @@
+use std::collections::HashMap;
+
 use anyhow::{Context, Result};
-use pyo3::pyclass;
+use dict_derive::FromPyObject;
+use pyo3::{
+    exceptions::PyValueError, pyclass, pyfunction, pymethods, types::PyDict, Py, PyAny, PyObject,
+    PyResult, Python,
+};
 use serde::Serialize;
 
-#[pyclass]
-#[derive(Default, Clone, Serialize)]
+#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
 pub struct LogSelection {
     /// Address of the contract, any logs that has any of these addresses will be returned.
     /// Empty means match all.
@@ -15,8 +20,7 @@ pub struct LogSelection {
     pub topics: Option<Vec<Vec<String>>>,
 }
 
-#[pyclass]
-#[derive(Default, Clone, Serialize)]
+#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
 pub struct TransactionSelection {
     /// Address the transaction should originate from. If transaction.from matches any of these, the transaction
     ///  will be returned. Keep in mind that this has an and relationship with to filter, so each transaction should
@@ -36,8 +40,7 @@ pub struct TransactionSelection {
     pub status: Option<i64>,
 }
 
-#[pyclass]
-#[derive(Default, Clone, Serialize)]
+#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
 pub struct FieldSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block: Option<Vec<String>>,
@@ -47,8 +50,7 @@ pub struct FieldSelection {
     pub log: Option<Vec<String>>,
 }
 
-#[pyclass]
-#[derive(Default, Clone, Serialize)]
+#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
 pub struct Query {
     /// The block to start the query from
     pub from_block: i64,
@@ -90,6 +92,77 @@ pub struct Query {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_num_logs: Option<i64>,
 }
+
+// #[pymethods]
+// impl Query {
+//     #[new]
+//     pub fn new(dict: HashMap<String, PyObject>, py: Python<'_>) -> PyResult<Query> {
+//         let from_block: i64 = match dict.get("from_block") {
+//             Some(from_block) => from_block.extract(py)?,
+//             None => return Err(PyValueError::new_err("from_block must be set")),
+//         };
+
+//         let to_block: Option<i64> = match dict.get("to_block") {
+//             Some(to_block) => to_block.extract(py)?,
+//             None => None,
+//         };
+
+//         let logs: Option<Vec<LogSelection>> = match dict.get("logs") {
+//             Some(logs) => logs.extract(py)?,
+//             None => None,
+//         };
+
+//         let transactions: Option<Vec<TransactionSelection>> = match dict.get("transactions") {
+//             Some(txns) => txns.extract(py)?,
+//             None => None,
+//         };
+
+//         let include_all_blocks: Option<bool> = match dict.get("include_all_blocks") {
+//             Some(include_all) => include_all.extract(py)?,
+//             None => None,
+//         };
+
+//         let field_selection: FieldSelection = match dict.get("field_selection") {
+//             Some(field_selection) => field_selection.extract(py)?,
+//             None => return Err(PyValueError::new_err("field_selection must be set")),
+//         };
+
+//         let max_num_blocks: Option<i64> = match dict.get("max_num_blocks") {
+//             Some(max_num_blocks) => max_num_blocks.extract(py)?,
+//             None => None,
+//         };
+
+//         let max_num_transactions: Option<i64> = match dict.get("max_num_transactions") {
+//             Some(max_num_txns) => max_num_txns.extract(py)?,
+//             None => None,
+//         };
+
+//         let max_num_logs: Option<i64> = match dict.get("max_num_logs") {
+//             Some(max_num_logs) => max_num_logs.extract(py)?,
+//             None => None,
+//         };
+
+//         Ok(Query {
+//             from_block,
+//             to_block,
+//             logs,
+//             transactions,
+//             include_all_blocks,
+//             field_selection,
+//             max_num_blocks,
+//             max_num_transactions,
+//             max_num_logs,
+//         })
+//     }
+// }
+
+// fn extract_txns(logs: &Py<PyAny>) -> PyResult<Option<Vec<TransactionSelection>>> {
+//     todo!()
+// }
+
+// fn extract_logs(logs: &Py<PyAny>) -> PyResult<Option<Vec<LogSelection>>> {
+//     todo!()
+// }
 
 impl Query {
     pub fn try_convert(&self) -> Result<skar_net_types::Query> {

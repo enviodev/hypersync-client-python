@@ -1,6 +1,7 @@
 use pyo3::{
     exceptions::{PyIOError, PyValueError},
     prelude::*,
+    types::PyDict,
 };
 use pyo3_asyncio::tokio::future_into_py;
 
@@ -41,8 +42,11 @@ impl HypersyncClient {
             .try_convert()
             .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
 
+        let client =
+            skar_client::Client::new(cfg).map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
         Ok(HypersyncClient {
-            inner: Arc::new(skar_client::Client::new(cfg)),
+            inner: Arc::new(client),
         })
     }
 

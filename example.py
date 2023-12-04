@@ -16,7 +16,7 @@ async def main():
     addr = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
 
     query = {
-        "fromBlock": 0,
+        "from_block": 0,
         "logs": [
             {
                 "topics": [
@@ -37,7 +37,7 @@ async def main():
             {"from": ["0x" + addr]},
             {"to": ["0x" + addr]},
         ],
-        "fieldSelection": {
+        "field_selection": {
             "block": ["number", "timestamp", "hash"],
             "log": [
                 "block_number",
