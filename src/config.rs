@@ -1,7 +1,7 @@
 use std::num::NonZeroU64;
 
 use anyhow::{Context, Result};
-use pyo3::pyclass;
+use pyo3::{pyclass, pymethods, FromPyObject};
 
 #[pyclass]
 #[derive(Default, Clone)]
@@ -15,6 +15,18 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn new(
+        url: String,
+        bearer_token: Option<String>,
+        http_req_timeout_millis: Option<i64>,
+    ) -> Self {
+        Self {
+            url,
+            bearer_token,
+            http_req_timeout_millis,
+        }
+    }
+
     pub fn try_convert(&self) -> Result<skar_client::Config> {
         Ok(skar_client::Config {
             url: self.url.parse().context("parse url")?,

@@ -16,9 +16,9 @@ tokio = "1.9"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 
-skar-client = "0.4.0"
-skar-net-types = "0.1.0"
-skar-format = "0.1.0"
+skar-client = "0.2.2"
+skar-net-types = "0.0.1"
+skar-format = "0.0.1"
 
 anyhow = "1"
 arrow2 = { version = "0.18" }
