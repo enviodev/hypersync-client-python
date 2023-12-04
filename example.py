@@ -65,7 +65,6 @@ async def main():
     # res = await client.send_req(query)
     # print(res)
      
-    
     await client.create_parquet_folder(query, "data")
     print("finished writing parquet folder")
 
