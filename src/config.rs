@@ -1,7 +1,7 @@
 use std::num::NonZeroU64;
 
 use anyhow::{Context, Result};
-use pyo3::{pyclass, pymethods, FromPyObject};
+use pyo3::{pyclass};
 
 #[pyclass]
 #[derive(Default, Clone)]

@@ -1,7 +1,6 @@
 use pyo3::{
     exceptions::{PyIOError, PyValueError},
     prelude::*,
-    types::PyDict,
 };
 use pyo3_asyncio::tokio::future_into_py;
 
@@ -59,7 +58,7 @@ impl HypersyncClient {
                 .await
                 .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
 
-            Ok(height.try_into().unwrap())
+            Ok(height)
         })
     }
 
@@ -82,7 +81,7 @@ impl HypersyncClient {
         future_into_py(py, async move {
             let query = query
                 .try_convert()
-                .map_err(|e| PyValueError::new_err("parsing query"))?;
+                .map_err(|_e| PyValueError::new_err("parsing query"))?;
 
             inner
                 .create_parquet_folder(query, path)
