@@ -19,10 +19,10 @@ use query::Query;
 use types::{Block, Event, Log, Transaction};
 
 #[pymodule]
-fn hypersync_client(_py: Python, m: &PyModule) -> PyResult<()> {
+fn hypersync(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<HypersyncClient>()
 }
-#[pyclass]
+#[pyclass(name = "hypersync_client")]
 pub struct HypersyncClient {
     inner: Arc<skar_client::Client>,
 }

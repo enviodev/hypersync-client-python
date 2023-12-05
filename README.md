@@ -3,44 +3,56 @@ Python package for [Envio's](https://envio.dev/) HyperSync client written in Rus
 
 ### Example usage
 ```python
-
-import hypersync_client
+import hypersync
 import asyncio
 
 async def main():
 
-    client = hypersync_client.HypersyncClient(
+    # Create hypersync client using the mainnet hypersync endpoint
+    client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
 
     height = await client.get_height()
-
     print("Height:", height)
 
+    # The address we want to get all ERC20 transfers and transactions for
     addr = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
 
+    # The query to run
     query = {
+        # start from block 0 and go to the end of the chain (we don't specify a toBlock).   
         "from_block": 0,
+        # The logs we want. We will also automatically get transactions and blocks relating to these logs (the query implicitly joins them)
         "logs": [
             {
                 "topics": [
+                    # We want ERC20 transfers
                     ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
                     [],
+                    # We want the transfers that go to this address.
+                    # appending zeroes because topic is 32 bytes but address is 20 bytes
                     ["0x000000000000000000000000" + addr],
                 ],
             },
             {
                 "topics": [
+                    # We want ERC20 transfers
                     ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+                    # We want the transfers that go to this address.
+                    # appending zeroes because topic is 32 bytes but address is 20 bytes
                     ["0x000000000000000000000000" + addr],
                     [],
                 ],
             },
         ],
         "transactions": [
+            # We want all the transactions that come from this address
             {"from": ["0x" + addr]},
+            # We want all the transactions that went to this address
             {"to": ["0x" + addr]},
         ],
+        # Select the fields we are interested in
         "field_selection": {
             "block": ["number", "timestamp", "hash"],
             "log": [
@@ -68,41 +80,14 @@ async def main():
 
     print(query)
 
+    # run the query once
     # res = await client.send_req(query)
     # print(res)
      
+    # Create a parquet folder by running this query and writing the contents to disk
     await client.create_parquet_folder(query, "data")
     print("finished writing parquet folder")
 
 
 asyncio.run(main())
-
 ```
-
-
-To run locally
-```
-$ pyenv activate pyo3
-$ maturin develop
-$ python3
->>> import hypersync_client
->>> hypersync_client.send_req()
-```
-
-To publish to test PyPI
-```
-$ maturin publish -r testpypi
-```
-
-username: `__token__`
-
-password: `<YOUR-TOKEN>`
-
-make sure to include the `pypi-` prefix on your token and that your token doesn't contain any newline chars
-
-using the deployed package:
-    
-    $ python -m pip install --index-url https://test.pypi.org/simple/ --no-deps hypersync
-
-    $ python
-    >>> import hypersync_client
