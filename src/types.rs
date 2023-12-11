@@ -94,7 +94,6 @@ pub struct Block {
 }
 
 /// Decoded EVM log
-// TODO: for now maybe just use pyAny.  And if we want types on the python side we can use a dict with "type" and "value" fields
 #[pyclass]
 #[pyo3(get_all)]
 #[derive(Default)]
@@ -103,33 +102,12 @@ pub struct DecodedEvent {
     pub body: Vec<PyObject>,
 }
 
-// TODO: for now maybe just use pyAny.  And if we want types on the python side we can use a dict with "type" and "value" fields
-// #[derive(Clone)]
-// pub enum DecodedSolValue {
-//     // pub val: Either4<bool, &PyLong, String, Vec<DecodedSolValue>>,
-//     Bool(PyLong),
-//     // TODO: needs to be bigger
-//     Int(u64),
-//     String(String),
-//     Vec(Vec<DecodedSolValue>),
-// }
-
-// #[pyclass(name = "DecodedSolValue")]
-// #[derive(Clone)]
-// struct PyDecodedSolValue(DecodedSolValue);
-
-// impl PyDecodedSolValue {
-//     fn new(inner: impl Into<DecodedSolValue>) -> Self {
-//         PyDecodedSolValue(inner.into())
-//     }
-// }
-
 pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
     match val {
         DynSolValue::Bool(b) => b.into_py(py),
         DynSolValue::Int(v, _) => {
             // v.into_py(py)
-            todo!()
+            "todo_int".into_py(py)
         }
         // Either4::B(BigInt {
         //     sign_bit: v.is_negative(),
@@ -137,7 +115,7 @@ pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
         // }),
         DynSolValue::Uint(v, _) => {
             //v.into_py(py)
-            todo!()
+            "todo_uint".into_py(py)
         }
         // Either4::B(BigInt {
         //     sign_bit: false,

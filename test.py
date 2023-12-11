@@ -90,14 +90,23 @@ async def test_decode_logs():
         "https://eth.hypersync.xyz",
     )
     res = await client.send_req(QUERY)
-    # print(res)
+    with open('./erc20.abi.json', 'r') as json_file:
+        json = json_file.read()
+    abis = {}
+    for log in res.data.logs:
+        abis[log.address] = json
+    decoder = hypersync.Decoder(abis)
+    decoded_logs = decoder.decode_logs_sync(res.data.logs)
+    for decoded_log in decoded_logs:
+        print(decoded_log.body)
+    
     print("test_decode_logs passed")
 
 async def main():
+    await test_decode_logs()
     await test_query_parquet()
     await test_send_req()
     await test_get_height()
-    await test_decode_logs()
 
 asyncio.run(main())
 

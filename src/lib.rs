@@ -1,3 +1,4 @@
+use decode::Decoder;
 use pyo3::{
     exceptions::{PyIOError, PyValueError},
     prelude::*,
@@ -21,7 +22,8 @@ use types::{Block, Event, Log, Transaction};
 
 #[pymodule]
 fn hypersync(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<HypersyncClient>()
+    m.add_class::<HypersyncClient>()?;
+    m.add_class::<Decoder>()
 }
 #[pyclass(name = "hypersync_client")]
 pub struct HypersyncClient {
