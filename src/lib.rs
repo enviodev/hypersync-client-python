@@ -161,6 +161,8 @@ impl HypersyncClient {
 }
 
 #[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone)]
 pub struct QueryResponseData {
     pub blocks: Vec<Block>,
     pub transactions: Vec<Transaction>,
@@ -168,6 +170,8 @@ pub struct QueryResponseData {
 }
 
 #[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone)]
 pub struct QueryResponse {
     /// Current height of the source hypersync instance
     pub archive_height: Option<i64>,

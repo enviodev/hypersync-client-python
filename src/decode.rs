@@ -7,7 +7,7 @@ use pyo3::{exceptions::PyValueError, pyclass, pymethods, PyAny, PyResult, Python
 use pyo3_asyncio::tokio::future_into_py;
 use skar_format::{Address, Hex, LogArgument};
 
-use crate::types::{DecodedEvent, DecodedSolValue, Event, Log};
+use crate::types::{to_py, DecodedEvent, Event, Log};
 
 #[pyclass]
 #[derive(Clone)]
@@ -18,12 +18,11 @@ pub struct Decoder {
 #[pymethods]
 impl Decoder {
     #[new]
-    // #[napi(ts_return_type = "Decoder")]
-    pub fn new(json_abis: HashMap<String, serde_json::Value>) -> PyResult<Self> {
+    // Hash map of address -> Json
+    pub fn new(json_abis: HashMap<String, String>) -> PyResult<Self> {
         let json_abis = json_abis
             .into_iter()
-            .map(|(addr, abi)| {
-                let json = serde_json::to_string(&abi).context("serialize json")?;
+            .map(|(addr, json)| {
                 let abi: JsonAbi = serde_json::from_str(&json).context("parse json abi")?;
                 let addr = Address::decode_hex(&addr).context("decode hex address")?;
                 Ok((addr, abi))
@@ -41,47 +40,59 @@ impl Decoder {
         })
     }
 
+    // TODO:
     // returns python awaitable for PyResult<Vec<Option<DecodedEvent>>>
-    pub fn decode_logs<'py>(&'py self, logs: Vec<Log>, py: Python<'py>) -> PyResult<&'py PyAny> {
-        let decoder = self.clone();
+    // pub fn decode_logs<'py>(&'py self, logs: Vec<Log>, py: Python<'py>) -> PyResult<&'py PyAny> {
+    //     let decoder = self.clone();
 
-        future_into_py::<_, Vec<Option<DecodedEvent>>>(py, async move {
-            decoder.decode_logs_sync(logs)?
-        })
-    }
+    //     future_into_py::<_, Vec<Option<DecodedEvent>>>(py, async move {
+    //         decoder.decode_logs_sync(logs, py)
+    //     })
+    // }
 
     // returns Result<Vec<Option<DecodedEvent>>>
-    pub fn decode_logs_sync(&self, logs: Vec<Log>) -> PyResult<Vec<Option<PyAny>>> {
+    pub fn decode_logs_sync(
+        &self,
+        logs: Vec<Log>,
+        py: Python,
+    ) -> PyResult<Vec<Option<DecodedEvent>>> {
         logs.iter()
-            .map(|log| self.decode_impl(log))
+            .map(|log| self.decode_impl(log, py))
             .collect::<Result<Vec<_>>>()
             .map_err(|e| PyValueError::new_err(format!("{:?}", e)))
     }
 
+    // TODO:
     // returns python awaitable for PyResult<Vec<Option<DecodedEvent>>>
-    pub fn decode_events<'py>(
-        &'py self,
-        events: Vec<Event>,
-        py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
-        let decoder = self.clone();
+    // pub fn decode_events<'py>(
+    //     &'py self,
+    //     events: Vec<Event>,
+    //     py: Python<'py>,
+    // ) -> PyResult<&'py PyAny> {
+    //     let decoder = self.clone();
 
-        future_into_py::<_, Vec<Option<DecodedEvent>>>(py, async move {
-            decoder.decode_events_sync(events)?
-        })
-    }
+    //     future_into_py::<_, Vec<Option<DecodedEvent>>>(py, async move {
+    //         decoder.decode_events_sync(events, py)
+    //     })
+    // }
 
     // returns Result<Vec<Option<DecodedEvent>>>
-    pub fn decode_events_sync(&self, events: Vec<Event>) -> PyResult<Vec<Option<PyAny>>> {
+    pub fn decode_events_sync(
+        &self,
+        events: Vec<Event>,
+        py: Python,
+    ) -> PyResult<Vec<Option<DecodedEvent>>> {
         events
             .iter()
-            .map(|event| self.decode_impl(&event.log))
+            .map(|event| self.decode_impl(&event.log, py))
             .collect::<Result<Vec<_>>>()
             .map_err(|e| PyValueError::new_err(format!("{:?}", e)))
     }
+}
 
+impl Decoder {
     // returns Result<Option<DecodedEvent>>
-    fn decode_impl(&self, log: &Log) -> Result<Option<PyAny>> {
+    fn decode_impl(&self, log: &Log, py: Python) -> Result<Option<DecodedEvent>> {
         let address = log.address.as_ref().context("get address")?;
         let address = Address::decode_hex(address).context("decode address")?;
 
@@ -121,9 +132,9 @@ impl Decoder {
             indexed: decoded
                 .indexed
                 .into_iter()
-                .map(DecodedSolValue::new)
+                .map(|val| to_py(val, py))
                 .collect(),
-            body: decoded.body.into_iter().map(DecodedSolValue::new).collect(),
+            body: decoded.body.into_iter().map(|val| to_py(val, py)).collect(),
         }))
     }
 }
