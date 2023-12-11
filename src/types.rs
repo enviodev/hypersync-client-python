@@ -1,4 +1,5 @@
-use pyo3::pyclass;
+use alloy_dyn_abi::DynSolValue;
+use pyo3::{pyclass, types::PyLong, PyAny};
 
 /// Data relating to a single event (log)
 #[pyclass]
@@ -85,4 +86,54 @@ pub struct Block {
     pub gas_used: Option<String>,
     pub timestamp: Option<i64>,
     pub base_fee_per_gas: Option<String>,
+}
+
+/// Decoded EVM log
+// TODO: for now maybe just use pyAny.  And if we want types on the python side we can use a dict with "type" and "value" fields
+#[pyclass]
+#[derive(Default)]
+pub struct DecodedEvent {
+    pub indexed: Vec<PyAny>,
+    pub body: Vec<PyAny>,
+}
+
+// TODO: for now maybe just use pyAny.  And if we want types on the python side we can use a dict with "type" and "value" fields
+#[pyclass]
+#[derive(Clone)]
+pub enum DecodedSolValue {
+    // pub val: Either4<bool, &PyLong, String, Vec<DecodedSolValue>>,
+    Bool(bool),
+    Int(&PyLong),
+}
+
+impl DecodedSolValue {
+    pub fn new(val: DynSolValue) -> Self {
+        let val = match val {
+            DynSolValue::Bool(b) => Either4::A(b),
+            DynSolValue::Int(v, _) => Either4::B(BigInt {
+                sign_bit: v.is_negative(),
+                words: v.into_limbs().to_vec(),
+            }),
+            DynSolValue::Uint(v, _) => Either4::B(BigInt {
+                sign_bit: false,
+                words: v.into_limbs().to_vec(),
+            }),
+            DynSolValue::FixedBytes(bytes, _) => Either4::C(prefix_hex::encode(bytes.as_slice())),
+            DynSolValue::Address(bytes) => Either4::C(prefix_hex::encode(bytes.as_slice())),
+            DynSolValue::Function(bytes) => Either4::C(prefix_hex::encode(bytes.as_slice())),
+            DynSolValue::Bytes(bytes) => Either4::C(prefix_hex::encode(bytes.as_slice())),
+            DynSolValue::String(bytes) => Either4::C(prefix_hex::encode(bytes.as_bytes())),
+            DynSolValue::Array(vals) => {
+                Either4::D(vals.into_iter().map(DecodedSolValue::new).collect())
+            }
+            DynSolValue::FixedArray(vals) => {
+                Either4::D(vals.into_iter().map(DecodedSolValue::new).collect())
+            }
+            DynSolValue::Tuple(vals) => {
+                Either4::D(vals.into_iter().map(DecodedSolValue::new).collect())
+            }
+        };
+
+        Self { val }
+    }
 }

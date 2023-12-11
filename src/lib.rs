@@ -10,6 +10,7 @@ use anyhow::{Context, Result};
 use from_arrow::FromArrow;
 
 mod config;
+mod decode;
 mod from_arrow;
 mod query;
 mod types;
@@ -29,6 +30,7 @@ pub struct HypersyncClient {
 
 #[pymethods]
 impl HypersyncClient {
+    /// Create a new client with given config
     #[new]
     fn new(
         url: String,
@@ -154,10 +156,6 @@ impl HypersyncClient {
                 .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
 
             Ok(res)
-
-            // send_events_req_impl(inner, query)
-            //     .await
-            //     .map_err(|e| PyIOError::new_err(format!("{:?}", e)))
         })
     }
 }
