@@ -73,12 +73,33 @@ async def main():
         },
     }
 
-    print(query)
+    print("query: ", query)
 
     # run the query once
-    # res = await client.send_req(query)
-    # print(res)
-     
+    res = await client.send_req(query)
+    print("res: ", res)
+
+    # read json abi file for erc20
+    with open('./erc20.abi.json', 'r') as json_file:
+        abi = json_file.read()
+
+    # every log we get should be decodable by this abi but we don't know
+    # the specific contract addresses since we are indexing all erc20 transfers.
+    abis = {}
+    for log in res.data.logs:
+        abis[log.address] = abi
+
+    # create a decoder based on our abi file
+    decoder = hypersync.Decoder(abis)
+    
+    # decode the logs using the decoder
+    decoded_logs = decoder.decode_logs_sync(res.data.logs)
+
+    print("decoded logs:")
+    for decoded_log in decoded_logs:
+        print(decoded_log.indexed)
+        print(decoded_log.body)
+
     # Create a parquet folder by running this query and writing the contents to disk
     await client.create_parquet_folder(query, "data")
     print("finished writing parquet folder")
