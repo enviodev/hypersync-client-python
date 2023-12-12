@@ -63,12 +63,14 @@ QUERY = {
     },
 }
 
+
 async def test_query_parquet():
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
     await client.create_parquet_folder(QUERY, "data")
     print("test_query_parquet passed")
+
 
 async def test_send_req():
     client = hypersync.hypersync_client(
@@ -78,12 +80,14 @@ async def test_send_req():
     # print(res.data.logs)
     print("test_send_req passed")
 
+
 async def test_get_height():
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
     height = await client.get_height()
     print("test_get_height passed")
+
 
 async def test_decode_logs():
     client = hypersync.hypersync_client(
@@ -98,9 +102,10 @@ async def test_decode_logs():
     decoder = hypersync.Decoder(abis)
     decoded_logs = decoder.decode_logs_sync(res.data.logs)
     for decoded_log in decoded_logs:
+        print(decoded_log.indexed)
         print(decoded_log.body)
-    
     print("test_decode_logs passed")
+
 
 async def test_decode_events():
     client = hypersync.hypersync_client(
@@ -115,9 +120,11 @@ async def test_decode_events():
     decoder = hypersync.Decoder(abis)
     decoded_events = decoder.decode_events_sync(res.events)
     for decoded_event in decoded_events:
+        print(decoded_event.indexed)
         print(decoded_event.body)
     
     print("test_decode_events passed")
+
 
 async def main():
     await test_decode_logs()

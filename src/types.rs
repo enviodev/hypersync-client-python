@@ -114,10 +114,6 @@ pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
                 PyObject::from_owned_ptr(py, obj)
             }
         }
-        // Either4::B(BigInt {
-        //     sign_bit: v.is_negative(),
-        //     words: v.into_limbs().to_vec(),
-        // }),
         DynSolValue::Uint(v, _) => {
             //v.into_py(py)
             let bytes: [u8; Uint::<256, 4>::BYTES] = v.to_le_bytes();
@@ -127,10 +123,6 @@ pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
                 PyObject::from_owned_ptr(py, obj)
             }
         }
-        // Either4::B(BigInt {
-        //     sign_bit: false,
-        //     words: v.into_limbs().to_vec(),
-        // }),
         DynSolValue::FixedBytes(bytes, _) => prefix_hex::encode(bytes.as_slice()).into_py(py),
         DynSolValue::Address(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
         DynSolValue::Function(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
@@ -153,35 +145,3 @@ pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
             .into_py(py),
     }
 }
-
-// impl DecodedSolValue {
-//     pub fn new(val: DynSolValue) -> Self {
-//         let val = match val {
-//             DynSolValue::Bool(b) => Either4::A(b),
-//             DynSolValue::Int(v, _) => Either4::B(BigInt {
-//                 sign_bit: v.is_negative(),
-//                 words: v.into_limbs().to_vec(),
-//             }),
-//             DynSolValue::Uint(v, _) => Either4::B(BigInt {
-//                 sign_bit: false,
-//                 words: v.into_limbs().to_vec(),
-//             }),
-//             DynSolValue::FixedBytes(bytes, _) => Either4::C(prefix_hex::encode(bytes.as_slice())),
-//             DynSolValue::Address(bytes) => Either4::C(prefix_hex::encode(bytes.as_slice())),
-//             DynSolValue::Function(bytes) => Either4::C(prefix_hex::encode(bytes.as_slice())),
-//             DynSolValue::Bytes(bytes) => Either4::C(prefix_hex::encode(bytes.as_slice())),
-//             DynSolValue::String(bytes) => Either4::C(prefix_hex::encode(bytes.as_bytes())),
-//             DynSolValue::Array(vals) => {
-//                 Either4::D(vals.into_iter().map(DecodedSolValue::new).collect())
-//             }
-//             DynSolValue::FixedArray(vals) => {
-//                 Either4::D(vals.into_iter().map(DecodedSolValue::new).collect())
-//             }
-//             DynSolValue::Tuple(vals) => {
-//                 Either4::D(vals.into_iter().map(DecodedSolValue::new).collect())
-//             }
-//         };
-
-//         Self { val }
-//     }
-// }
