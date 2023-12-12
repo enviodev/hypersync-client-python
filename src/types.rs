@@ -1,11 +1,11 @@
 use alloy_dyn_abi::DynSolValue;
 use alloy_primitives::{Signed, Uint};
-use pyo3::{ffi, pyclass, IntoPy, PyObject, Python};
+use pyo3::{ffi, pyclass, pymethods, IntoPy, PyObject, PyResult, PyTraverseError, PyVisit, Python};
 
 /// Data relating to a single event (log)
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Event {
     /// Transaction that triggered this event
     pub transaction: Option<Transaction>,
@@ -15,12 +15,27 @@ pub struct Event {
     pub log: Log,
 }
 
+#[pymethods]
+impl Event {
+    fn __bool__(&self) -> bool {
+        self.transaction.is_some() || self.block.is_some() || self.log.__bool__()
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
 /// Evm log object
 ///
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug, Eq, PartialEq)]
 pub struct Log {
     pub removed: Option<bool>,
     pub log_index: i64,
@@ -33,12 +48,27 @@ pub struct Log {
     pub topics: Vec<Option<String>>,
 }
 
+#[pymethods]
+impl Log {
+    fn __bool__(&self) -> bool {
+        *self != Log::default()
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
 /// Evm transaction object
 ///
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug, Eq, PartialEq)]
 pub struct Transaction {
     pub block_hash: Option<String>,
     pub block_number: i64,
@@ -67,12 +97,27 @@ pub struct Transaction {
     pub status: Option<u32>,
 }
 
+#[pymethods]
+impl Transaction {
+    fn __bool__(&self) -> bool {
+        *self != Transaction::default()
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
 /// Evm block header object
 ///
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug, Eq, PartialEq)]
 pub struct Block {
     pub number: i64,
     pub hash: Option<String>,
@@ -94,13 +139,63 @@ pub struct Block {
     pub base_fee_per_gas: Option<String>,
 }
 
+#[pymethods]
+impl Block {
+    fn __bool__(&self) -> bool {
+        *self != Block::default()
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
 /// Decoded EVM log
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct DecodedEvent {
     pub indexed: Vec<PyObject>,
     pub body: Vec<PyObject>,
+}
+
+#[pymethods]
+impl DecodedEvent {
+    fn __bool__(&self) -> bool {
+        !self.indexed.is_empty() || !self.body.is_empty()
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    // DecodedEvent holds references to python objects so we have to add garbage collector support
+    // by implementing __traverse__ and __clear__
+    fn __traverse__(&self, visit: PyVisit<'_>) -> Result<(), PyTraverseError> {
+        for obj in &self.indexed {
+            visit.call(obj)?;
+        }
+
+        for obj in &self.body {
+            visit.call(obj)?;
+        }
+
+        Ok(())
+    }
+
+    fn __clear__(&mut self) {
+        // Clear references and decrement ref counters.
+        self.indexed.clear();
+        self.body.clear();
+    }
 }
 
 pub fn to_py(val: DynSolValue, py: Python) -> PyObject {

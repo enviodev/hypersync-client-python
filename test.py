@@ -1,5 +1,10 @@
 import hypersync
 import asyncio
+import time
+
+# for benchmarking times.  Will run the function this many times and take the
+# average
+NUM_BENCHMARK_RUNS = 1
 
 # The address we want to get all ERC20 transfers and transactions for
 ADDR = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
@@ -64,29 +69,60 @@ QUERY = {
 }
 
 
-async def test_query_parquet():
+async def test_create_parquet_folder():
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
-    await client.create_parquet_folder(QUERY, "data")
-    print("test_query_parquet passed")
+    total_time = 0
+    for _ in range(NUM_BENCHMARK_RUNS):    
+        start_time = time.time()
+        await client.create_parquet_folder(QUERY, "data")
+        execution_time = (time.time() - start_time)*1000
+        total_time += execution_time
+    avg_time = total_time / NUM_BENCHMARK_RUNS
+    print(f"create_parquet_folder time: {format(execution_time, '.9f')}ms")
 
 
 async def test_send_req():
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
-    res = await client.send_req(QUERY)
-    # print(res.data.logs)
-    print("test_send_req passed")
+    total_time = 0
+    for _ in range(NUM_BENCHMARK_RUNS):
+        start_time = time.time()
+        res = await client.send_req(QUERY)
+        execution_time = (time.time() - start_time)*1000
+        total_time += execution_time
+    avg_time = total_time / NUM_BENCHMARK_RUNS
+    print(f"send_req time: {format(execution_time, '.9f')}ms")
+
+
+async def test_send_events_req():
+    client = hypersync.hypersync_client(
+        "https://eth.hypersync.xyz",
+    )
+    total_time = 0
+    for _ in range(NUM_BENCHMARK_RUNS):
+        start_time = time.time()
+        res = await client.send_events_req(QUERY)
+        execution_time = (time.time() - start_time)*1000
+        total_time += execution_time
+    avg_time = total_time / NUM_BENCHMARK_RUNS
+    print(f"send_events_req time: {format(execution_time, '.9f')}ms")
 
 
 async def test_get_height():
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
-    height = await client.get_height()
-    print("test_get_height passed")
+    total_time = 0
+    for _ in range(NUM_BENCHMARK_RUNS):
+        start_time = time.time()
+        height = await client.get_height()
+        execution_time = (time.time() - start_time)*1000
+        total_time += execution_time
+    avg_time = total_time / NUM_BENCHMARK_RUNS
+    print(f"get_height time: {format(execution_time, '.9f')}ms")
 
 
 async def test_decode_logs():
@@ -100,11 +136,14 @@ async def test_decode_logs():
     for log in res.data.logs:
         abis[log.address] = json
     decoder = hypersync.Decoder(abis)
-    decoded_logs = decoder.decode_logs_sync(res.data.logs)
-    for decoded_log in decoded_logs:
-        print(decoded_log.indexed)
-        print(decoded_log.body)
-    print("test_decode_logs passed")
+    total_time = 0
+    for _ in range(NUM_BENCHMARK_RUNS):
+        start_time = time.time()
+        decoded_logs = decoder.decode_logs_sync(res.data.logs)
+        execution_time = (time.time() - start_time)*1000
+        total_time += execution_time
+    avg_time = total_time / NUM_BENCHMARK_RUNS
+    print(f"decode_logs time: {format(execution_time, '.9f')}ms")
 
 
 async def test_decode_events():
@@ -118,20 +157,25 @@ async def test_decode_events():
     for event in res.events:
         abis[event.log.address] = json
     decoder = hypersync.Decoder(abis)
-    decoded_events = decoder.decode_events_sync(res.events)
-    for decoded_event in decoded_events:
-        print(decoded_event.indexed)
-        print(decoded_event.body)
-    
-    print("test_decode_events passed")
+    total_time = 0
+    for _ in range(NUM_BENCHMARK_RUNS):
+        start_time = time.time()
+        decoded_events = decoder.decode_events_sync(res.events)
+        execution_time = (time.time() - start_time)*1000
+        total_time += execution_time
+    avg_time = total_time / NUM_BENCHMARK_RUNS
+    print(f"decode_events time: {format(execution_time, '.9f')}ms")
 
 
 async def main():
+    print("hypersync-client-python")
+    print(f"number of runs for each test: {NUM_BENCHMARK_RUNS}")
+    await test_send_req()
+    await test_send_events_req()
+    await test_get_height()
     await test_decode_logs()
     await test_decode_events()
-    await test_query_parquet()
-    await test_send_req()
-    await test_get_height()
+    await test_create_parquet_folder()
 
 asyncio.run(main())
 
