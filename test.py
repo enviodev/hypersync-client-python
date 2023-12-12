@@ -1,5 +1,6 @@
 import hypersync
 import asyncio
+import time
 
 # The address we want to get all ERC20 transfers and transactions for
 ADDR = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
@@ -68,25 +69,40 @@ async def test_query_parquet():
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
+    start_time = time.time()
     await client.create_parquet_folder(QUERY, "data")
-    print("test_query_parquet passed")
+    execution_time = (time.time() - start_time)*1000
+    print(f"create_parquet_folder time: {format(execution_time, '.9f')}ms")
 
 
 async def test_send_req():
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
+    start_time = time.time()
     res = await client.send_req(QUERY)
-    # print(res.data.logs)
-    print("test_send_req passed")
+    execution_time = (time.time() - start_time)*1000
+    print(f"send_req time: {format(execution_time, '.9f')}ms")
+
+
+async def test_send_events_req():
+    client = hypersync.hypersync_client(
+        "https://eth.hypersync.xyz",
+    )
+    start_time = time.time()
+    res = await client.send_events_req(QUERY)
+    execution_time = (time.time() - start_time)*1000
+    print(f"send_events_req time: {format(execution_time, '.9f')}ms")
 
 
 async def test_get_height():
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
+    start_time = time.time()
     height = await client.get_height()
-    print("test_get_height passed")
+    execution_time = (time.time() - start_time)*1000
+    print(f"get_height time: {format(execution_time, '.9f')}ms")
 
 
 async def test_decode_logs():
@@ -100,11 +116,13 @@ async def test_decode_logs():
     for log in res.data.logs:
         abis[log.address] = json
     decoder = hypersync.Decoder(abis)
+    start_time = time.time()
     decoded_logs = decoder.decode_logs_sync(res.data.logs)
-    for decoded_log in decoded_logs:
-        print(decoded_log.indexed)
-        print(decoded_log.body)
-    print("test_decode_logs passed")
+    execution_time = (time.time() - start_time)*1000
+    # for decoded_log in decoded_logs:
+        # print(decoded_log.indexed)
+        # print(decoded_log.body)
+    print(f"decode_logs time: {format(execution_time, '.9f')}ms")
 
 
 async def test_decode_events():
@@ -118,12 +136,14 @@ async def test_decode_events():
     for event in res.events:
         abis[event.log.address] = json
     decoder = hypersync.Decoder(abis)
+    start_time = time.time()
     decoded_events = decoder.decode_events_sync(res.events)
-    for decoded_event in decoded_events:
-        print(decoded_event.indexed)
-        print(decoded_event.body)
+    execution_time = (time.time() - start_time)*1000
+    # for decoded_event in decoded_events:
+        # print(decoded_event.indexed)
+        # print(decoded_event.body)
     
-    print("test_decode_events passed")
+    print(f"decode_events time: {format(execution_time, '.9f')}ms")
 
 
 async def main():
@@ -131,6 +151,7 @@ async def main():
     await test_decode_events()
     await test_query_parquet()
     await test_send_req()
+    await test_send_events_req()
     await test_get_height()
 
 asyncio.run(main())
