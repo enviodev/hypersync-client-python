@@ -1,7 +1,11 @@
-use pyo3::pyclass;
+use alloy_dyn_abi::DynSolValue;
+use alloy_primitives::{Signed, Uint};
+use pyo3::{ffi, pyclass, IntoPy, PyObject, Python};
 
 /// Data relating to a single event (log)
 #[pyclass]
+#[pyo3(get_all)]
+#[derive(Default, Clone)]
 pub struct Event {
     /// Transaction that triggered this event
     pub transaction: Option<Transaction>,
@@ -15,6 +19,7 @@ pub struct Event {
 ///
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
+#[pyo3(get_all)]
 #[derive(Default, Clone)]
 pub struct Log {
     pub removed: Option<bool>,
@@ -32,6 +37,7 @@ pub struct Log {
 ///
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
+#[pyo3(get_all)]
 #[derive(Default, Clone)]
 pub struct Transaction {
     pub block_hash: Option<String>,
@@ -65,6 +71,7 @@ pub struct Transaction {
 ///
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
+#[pyo3(get_all)]
 #[derive(Default, Clone)]
 pub struct Block {
     pub number: i64,
@@ -85,4 +92,56 @@ pub struct Block {
     pub gas_used: Option<String>,
     pub timestamp: Option<i64>,
     pub base_fee_per_gas: Option<String>,
+}
+
+/// Decoded EVM log
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Default)]
+pub struct DecodedEvent {
+    pub indexed: Vec<PyObject>,
+    pub body: Vec<PyObject>,
+}
+
+pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
+    match val {
+        DynSolValue::Bool(b) => b.into_py(py),
+        DynSolValue::Int(v, _) => {
+            let bytes: [u8; Signed::<256, 4>::BYTES] = v.to_le_bytes();
+            let ptr: *const u8 = bytes.as_ptr();
+            unsafe {
+                let obj = ffi::_PyLong_FromByteArray(ptr, Signed::<256, 4>::BYTES, 1, 1);
+                PyObject::from_owned_ptr(py, obj)
+            }
+        }
+        DynSolValue::Uint(v, _) => {
+            //v.into_py(py)
+            let bytes: [u8; Uint::<256, 4>::BYTES] = v.to_le_bytes();
+            let ptr: *const u8 = bytes.as_ptr();
+            unsafe {
+                let obj = ffi::_PyLong_FromByteArray(ptr, Uint::<256, 4>::BYTES, 1, 0);
+                PyObject::from_owned_ptr(py, obj)
+            }
+        }
+        DynSolValue::FixedBytes(bytes, _) => prefix_hex::encode(bytes.as_slice()).into_py(py),
+        DynSolValue::Address(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
+        DynSolValue::Function(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
+        DynSolValue::Bytes(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
+        DynSolValue::String(bytes) => prefix_hex::encode(bytes.as_bytes()).into_py(py),
+        DynSolValue::Array(vals) => vals
+            .into_iter()
+            .map(|a| to_py(a, py))
+            .collect::<Vec<PyObject>>()
+            .into_py(py),
+        DynSolValue::FixedArray(vals) => vals
+            .into_iter()
+            .map(|a| to_py(a, py))
+            .collect::<Vec<PyObject>>()
+            .into_py(py),
+        DynSolValue::Tuple(vals) => vals
+            .into_iter()
+            .map(|a| to_py(a, py))
+            .collect::<Vec<PyObject>>()
+            .into_py(py),
+    }
 }

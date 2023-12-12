@@ -1,3 +1,4 @@
+use decode::Decoder;
 use pyo3::{
     exceptions::{PyIOError, PyValueError},
     prelude::*,
@@ -10,6 +11,7 @@ use anyhow::{Context, Result};
 use from_arrow::FromArrow;
 
 mod config;
+mod decode;
 mod from_arrow;
 mod query;
 mod types;
@@ -20,7 +22,8 @@ use types::{Block, Event, Log, Transaction};
 
 #[pymodule]
 fn hypersync(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<HypersyncClient>()
+    m.add_class::<HypersyncClient>()?;
+    m.add_class::<Decoder>()
 }
 #[pyclass(name = "hypersync_client")]
 pub struct HypersyncClient {
@@ -29,6 +32,7 @@ pub struct HypersyncClient {
 
 #[pymethods]
 impl HypersyncClient {
+    /// Create a new client with given config
     #[new]
     fn new(
         url: String,
@@ -154,15 +158,13 @@ impl HypersyncClient {
                 .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
 
             Ok(res)
-
-            // send_events_req_impl(inner, query)
-            //     .await
-            //     .map_err(|e| PyIOError::new_err(format!("{:?}", e)))
         })
     }
 }
 
 #[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone)]
 pub struct QueryResponseData {
     pub blocks: Vec<Block>,
     pub transactions: Vec<Transaction>,
@@ -170,6 +172,8 @@ pub struct QueryResponseData {
 }
 
 #[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone)]
 pub struct QueryResponse {
     /// Current height of the source hypersync instance
     pub archive_height: Option<i64>,
@@ -188,6 +192,7 @@ const TX_JOIN_FIELDS: &[&str] = &["block_number", "transaction_index"];
 const LOG_JOIN_FIELDS: &[&str] = &["log_index", "transaction_index", "block_number"];
 
 #[pyclass]
+#[pyo3(get_all)]
 pub struct Events {
     /// Current height of the source hypersync instance
     pub archive_height: Option<i64>,

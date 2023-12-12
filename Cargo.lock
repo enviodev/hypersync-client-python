@@ -1055,6 +1055,9 @@ dependencies = [
 name = "hypersync"
 version = "0.0.1"
 dependencies = [
+ "alloy-dyn-abi",
+ "alloy-json-abi",
+ "alloy-primitives",
  "anyhow",
  "arrow2",
  "dict_derive",
@@ -2041,9 +2044,9 @@ checksum = "f27f6278552951f1f2b8cf9da965d10969b2efdea95a6ec47987ab46edfe263a"
 
 [[package]]
 name = "skar-client"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41fa344455597de01f04d5dacab9f744ae7e5b3b0b6b0a43a64a448cd7af7252"
+checksum = "84fa9b54f0f72199f52bd72a36b4b16ff5c721f18899d462f4fff2846e402a9c"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
@@ -2069,9 +2072,9 @@ dependencies = [
 
 [[package]]
 name = "skar-format"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bba83c30ab0368a48b7a4e3e1da05b2d7d6fa31b37ebc1e9b7465d6eb5d9764"
+checksum = "3d89b7413ab87f14abf94e360ab127550b1ae5da90ae718c3dad4b3951ee5f02"
 dependencies = [
  "arrayvec",
  "derive_more",
@@ -2082,9 +2085,9 @@ dependencies = [
 
 [[package]]
 name = "skar-net-types"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44757212bc06afdbaffa204ae8b5ffc41cd5e90d31cb420961c7aa72b090570a"
+checksum = "37de919ac3bd7086bccee73cf40c59937476bdee8e355691e2989f72cf8ba21b"
 dependencies = [
  "arrayvec",
  "capnp",
