@@ -192,6 +192,7 @@ const TX_JOIN_FIELDS: &[&str] = &["block_number", "transaction_index"];
 const LOG_JOIN_FIELDS: &[&str] = &["log_index", "transaction_index", "block_number"];
 
 #[pyclass]
+#[pyo3(get_all)]
 pub struct Events {
     /// Current height of the source hypersync instance
     pub archive_height: Option<i64>,

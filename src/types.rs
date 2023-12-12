@@ -1,5 +1,6 @@
 use alloy_dyn_abi::DynSolValue;
-use pyo3::{pyclass, pymethods, types::PyLong, IntoPy, PyAny, PyObject, Python, ToPyObject};
+use alloy_primitives::{Signed, Uint};
+use pyo3::{ffi, pyclass, pymethods, types::PyLong, IntoPy, PyAny, PyObject, Python, ToPyObject};
 
 /// Data relating to a single event (log)
 #[pyclass]
@@ -106,8 +107,12 @@ pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
     match val {
         DynSolValue::Bool(b) => b.into_py(py),
         DynSolValue::Int(v, _) => {
-            // v.into_py(py)
-            "todo_int".into_py(py)
+            let bytes: [u8; Signed::<256, 4>::BYTES] = v.to_le_bytes();
+            let ptr: *const u8 = bytes.as_ptr();
+            unsafe {
+                let obj = ffi::_PyLong_FromByteArray(ptr, Signed::<256, 4>::BYTES, 1, 1);
+                PyObject::from_owned_ptr(py, obj)
+            }
         }
         // Either4::B(BigInt {
         //     sign_bit: v.is_negative(),
@@ -115,7 +120,12 @@ pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
         // }),
         DynSolValue::Uint(v, _) => {
             //v.into_py(py)
-            "todo_uint".into_py(py)
+            let bytes: [u8; Uint::<256, 4>::BYTES] = v.to_le_bytes();
+            let ptr: *const u8 = bytes.as_ptr();
+            unsafe {
+                let obj = ffi::_PyLong_FromByteArray(ptr, Uint::<256, 4>::BYTES, 1, 0);
+                PyObject::from_owned_ptr(py, obj)
+            }
         }
         // Either4::B(BigInt {
         //     sign_bit: false,

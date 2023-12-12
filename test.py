@@ -102,8 +102,26 @@ async def test_decode_logs():
     
     print("test_decode_logs passed")
 
+async def test_decode_events():
+    client = hypersync.hypersync_client(
+        "https://eth.hypersync.xyz",
+    )
+    res = await client.send_events_req(QUERY)
+    with open('./erc20.abi.json', 'r') as json_file:
+        json = json_file.read()
+    abis = {}
+    for event in res.events:
+        abis[event.log.address] = json
+    decoder = hypersync.Decoder(abis)
+    decoded_events = decoder.decode_events_sync(res.events)
+    for decoded_event in decoded_events:
+        print(decoded_event.body)
+    
+    print("test_decode_events passed")
+
 async def main():
     await test_decode_logs()
+    await test_decode_events()
     await test_query_parquet()
     await test_send_req()
     await test_get_height()

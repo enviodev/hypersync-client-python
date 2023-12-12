@@ -20,6 +20,7 @@ serde = { version = "1", features = ["derive"] }
 
 alloy-json-abi = "0.5"
 alloy-dyn-abi = "0.5"
+alloy-primitives = "0.5.2"
 
 skar-client = "0.5.1"
 skar-net-types = "0.1.1"
