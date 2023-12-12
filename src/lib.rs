@@ -173,6 +173,10 @@ pub struct QueryResponseData {
 
 #[pymethods]
 impl QueryResponseData {
+    fn __bool__(&self) -> bool {
+        !self.blocks.is_empty() || !self.transactions.is_empty() || !self.logs.is_empty()
+    }
+
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("{:?}", self))
     }
@@ -200,6 +204,13 @@ pub struct QueryResponse {
 
 #[pymethods]
 impl QueryResponse {
+    fn __bool__(&self) -> bool {
+        self.archive_height != None
+            || self.next_block != i64::default()
+            || self.total_execution_time != i64::default()
+            || self.data.__bool__()
+    }
+
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("{:?}", self))
     }
@@ -231,6 +242,13 @@ pub struct Events {
 
 #[pymethods]
 impl Events {
+    fn __bool__(&self) -> bool {
+        self.archive_height != None
+            || self.next_block != i64::default()
+            || self.total_execution_time != i64::default()
+            || !self.events.is_empty()
+    }
+
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("{:?}", self))
     }

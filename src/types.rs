@@ -17,6 +17,10 @@ pub struct Event {
 
 #[pymethods]
 impl Event {
+    fn __bool__(&self) -> bool {
+        self.transaction.is_some() || self.block.is_some() || self.log.__bool__()
+    }
+
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("{:?}", self))
     }
@@ -31,7 +35,7 @@ impl Event {
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone, Debug, Eq, PartialEq)]
 pub struct Log {
     pub removed: Option<bool>,
     pub log_index: i64,
@@ -46,6 +50,10 @@ pub struct Log {
 
 #[pymethods]
 impl Log {
+    fn __bool__(&self) -> bool {
+        *self != Log::default()
+    }
+
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("{:?}", self))
     }
@@ -60,7 +68,7 @@ impl Log {
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone, Debug, Eq, PartialEq)]
 pub struct Transaction {
     pub block_hash: Option<String>,
     pub block_number: i64,
@@ -91,6 +99,10 @@ pub struct Transaction {
 
 #[pymethods]
 impl Transaction {
+    fn __bool__(&self) -> bool {
+        *self != Transaction::default()
+    }
+
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("{:?}", self))
     }
@@ -105,7 +117,7 @@ impl Transaction {
 /// See ethereum rpc spec for the meaning of fields
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone, Debug, Eq, PartialEq)]
 pub struct Block {
     pub number: i64,
     pub hash: Option<String>,
@@ -129,6 +141,10 @@ pub struct Block {
 
 #[pymethods]
 impl Block {
+    fn __bool__(&self) -> bool {
+        *self != Block::default()
+    }
+
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("{:?}", self))
     }
@@ -149,6 +165,10 @@ pub struct DecodedEvent {
 
 #[pymethods]
 impl DecodedEvent {
+    fn __bool__(&self) -> bool {
+        !self.indexed.is_empty() || !self.body.is_empty()
+    }
+
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("{:?}", self))
     }
