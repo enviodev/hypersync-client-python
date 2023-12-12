@@ -164,16 +164,27 @@ impl HypersyncClient {
 
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct QueryResponseData {
     pub blocks: Vec<Block>,
     pub transactions: Vec<Transaction>,
     pub logs: Vec<Log>,
 }
 
+#[pymethods]
+impl QueryResponseData {
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct QueryResponse {
     /// Current height of the source hypersync instance
     pub archive_height: Option<i64>,
@@ -187,12 +198,24 @@ pub struct QueryResponse {
     pub data: QueryResponseData,
 }
 
+#[pymethods]
+impl QueryResponse {
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
 const BLOCK_JOIN_FIELDS: &[&str] = &["number"];
 const TX_JOIN_FIELDS: &[&str] = &["block_number", "transaction_index"];
 const LOG_JOIN_FIELDS: &[&str] = &["log_index", "transaction_index", "block_number"];
 
 #[pyclass]
 #[pyo3(get_all)]
+#[derive(Debug)]
 pub struct Events {
     /// Current height of the source hypersync instance
     pub archive_height: Option<i64>,
@@ -204,6 +227,17 @@ pub struct Events {
     pub total_execution_time: i64,
     /// Response data
     pub events: Vec<Event>,
+}
+
+#[pymethods]
+impl Events {
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
 }
 
 fn convert_response_to_events(res: skar_client::QueryResponse) -> Result<Events> {

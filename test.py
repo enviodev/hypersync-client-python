@@ -105,7 +105,6 @@ async def test_send_events_req():
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
         res = await client.send_events_req(QUERY)
-        print(res)
         execution_time = (time.time() - start_time)*1000
         total_time += execution_time
     avg_time = total_time / NUM_BENCHMARK_RUNS
