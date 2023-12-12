@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use alloy_json_abi::JsonAbi;
 use anyhow::{anyhow, Context, Result};
-use pyo3::{exceptions::PyValueError, pyclass, pymethods, PyAny, PyResult, Python};
-use pyo3_asyncio::tokio::future_into_py;
+use pyo3::{exceptions::PyValueError, pyclass, pymethods, PyResult, Python};
+
 use skar_format::{Address, Hex, LogArgument};
 
 use crate::types::{to_py, DecodedEvent, Event, Log};

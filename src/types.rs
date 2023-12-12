@@ -1,6 +1,6 @@
 use alloy_dyn_abi::DynSolValue;
 use alloy_primitives::{Signed, Uint};
-use pyo3::{ffi, pyclass, pymethods, types::PyLong, IntoPy, PyAny, PyObject, Python, ToPyObject};
+use pyo3::{ffi, pyclass, IntoPy, PyObject, Python};
 
 /// Data relating to a single event (log)
 #[pyclass]
