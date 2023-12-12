@@ -4,7 +4,7 @@ import time
 
 # for benchmarking times.  Will run the function this many times and take the
 # average
-NUM_BENCHMARK_RUNS = 3
+NUM_BENCHMARK_RUNS = 1
 
 # The address we want to get all ERC20 transfers and transactions for
 ADDR = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
@@ -80,7 +80,7 @@ async def test_create_parquet_folder():
         execution_time = (time.time() - start_time)*1000
         total_time += execution_time
     avg_time = total_time / NUM_BENCHMARK_RUNS
-    print(f"create_parquet_folder time: {format(execution_time, '.9f')}ms avg over {NUM_BENCHMARK_RUNS} runs")
+    print(f"create_parquet_folder time: {format(execution_time, '.9f')}ms")
 
 
 async def test_send_req():
@@ -94,7 +94,7 @@ async def test_send_req():
         execution_time = (time.time() - start_time)*1000
         total_time += execution_time
     avg_time = total_time / NUM_BENCHMARK_RUNS
-    print(f"send_req time: {format(execution_time, '.9f')}ms avg over {NUM_BENCHMARK_RUNS} runs")
+    print(f"send_req time: {format(execution_time, '.9f')}ms")
 
 
 async def test_send_events_req():
@@ -105,10 +105,11 @@ async def test_send_events_req():
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
         res = await client.send_events_req(QUERY)
+        print(res)
         execution_time = (time.time() - start_time)*1000
         total_time += execution_time
     avg_time = total_time / NUM_BENCHMARK_RUNS
-    print(f"send_events_req time: {format(execution_time, '.9f')}ms avg over {NUM_BENCHMARK_RUNS} runs")
+    print(f"send_events_req time: {format(execution_time, '.9f')}ms")
 
 
 async def test_get_height():
@@ -122,7 +123,7 @@ async def test_get_height():
         execution_time = (time.time() - start_time)*1000
         total_time += execution_time
     avg_time = total_time / NUM_BENCHMARK_RUNS
-    print(f"get_height time: {format(execution_time, '.9f')}ms avg over {NUM_BENCHMARK_RUNS} runs")
+    print(f"get_height time: {format(execution_time, '.9f')}ms")
 
 
 async def test_decode_logs():
@@ -143,7 +144,7 @@ async def test_decode_logs():
         execution_time = (time.time() - start_time)*1000
         total_time += execution_time
     avg_time = total_time / NUM_BENCHMARK_RUNS
-    print(f"decode_logs time: {format(execution_time, '.9f')}ms avg over {NUM_BENCHMARK_RUNS} runs")
+    print(f"decode_logs time: {format(execution_time, '.9f')}ms")
 
 
 async def test_decode_events():
@@ -164,16 +165,18 @@ async def test_decode_events():
         execution_time = (time.time() - start_time)*1000
         total_time += execution_time
     avg_time = total_time / NUM_BENCHMARK_RUNS
-    print(f"decode_events time: {format(execution_time, '.9f')}ms avg over {NUM_BENCHMARK_RUNS} runs")
+    print(f"decode_events time: {format(execution_time, '.9f')}ms")
 
 
 async def main():
-    await test_decode_logs()
-    await test_decode_events()
-    await test_create_parquet_folder()
+    print("hypersync-client-python")
+    print(f"number of runs for each test: {NUM_BENCHMARK_RUNS}")
     await test_send_req()
     await test_send_events_req()
     await test_get_height()
+    await test_decode_logs()
+    await test_decode_events()
+    await test_create_parquet_folder()
 
 asyncio.run(main())
 

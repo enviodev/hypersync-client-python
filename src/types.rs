@@ -1,6 +1,6 @@
 use alloy_dyn_abi::DynSolValue;
 use alloy_primitives::{Signed, Uint};
-use pyo3::{ffi, pyclass, IntoPy, PyObject, Python};
+use pyo3::{ffi, pyclass, pymethods, IntoPy, PyObject, PyTraverseError, PyVisit, Python};
 
 /// Data relating to a single event (log)
 #[pyclass]
@@ -101,6 +101,28 @@ pub struct Block {
 pub struct DecodedEvent {
     pub indexed: Vec<PyObject>,
     pub body: Vec<PyObject>,
+}
+
+// DecodedEvent holds references to python objects so we have to add garbage collector support
+#[pymethods]
+impl DecodedEvent {
+    fn __traverse__(&self, visit: PyVisit<'_>) -> Result<(), PyTraverseError> {
+        for obj in &self.indexed {
+            visit.call(obj)?;
+        }
+
+        for obj in &self.body {
+            visit.call(obj)?;
+        }
+
+        Ok(())
+    }
+
+    fn __clear__(&mut self) {
+        // Clear references and decrement ref counters.
+        self.indexed.clear();
+        self.body.clear();
+    }
 }
 
 pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
