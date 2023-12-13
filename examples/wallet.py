@@ -1,12 +1,25 @@
 import hypersync
 import asyncio
 
-async def main():
+# the addresses we want to get data for
+addresses = [
+    "0xD1a923D70510814EaE7695A76326201cA06d080F".toLowerCase(),
+    "0xc0A101c4E9Bb4463BD2F5d6833c2276C36914Fb6".toLowerCase(),
+    "0xa0FBaEdC4C110f5A0c5E96c3eeAC9B5635b74CE7".toLowerCase(),
+    "0x32448eb389aBe39b20d5782f04a8d71a2b2e7189".toLowerCase(),
+]
 
+# Convert address to topic for filtering. Padds the address with zeroes.
+def address_to_topic(address):
+    return "0x000000000000000000000000" + address[2:]
+
+async def main():
     # Create hypersync client using the mainnet hypersync endpoint
     client = hypersync.hypersync_client(
         "https://eth.hypersync.xyz",
     )
+
+    address_topic_filter = list(map(address_to_topic, addresses))
 
     # The query to run
     query = {
@@ -15,11 +28,28 @@ async def main():
         # The logs we want. We will also automatically get transactions and blocks relating to these logs (the query implicitly joins them).
         "logs": [
           {
-            # We want All ERC20 transfers so no address filter and only a filter for the first topic
+            # We want All ERC20 transfers coming to any of our addresses
             "topics": [
               ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+              [],
+              address_topic_filter,
+              [],
+            ]
+          },
+          {
+            # We want All ERC20 transfers going from any of our addresses
+            "topics": [
+              ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+              address_topic_filter,
+              [],
+              [],
             ]
           }
+        ],
+        "transactions": [
+            # get all transactions coming from and going to any of our addresses.
+            { "from": addresses },
+            { "to": addresses }
         ],
         # Select the fields we are interested in, notice topics are selected as topic0,1,2,3
         "field_selection": {
@@ -80,14 +110,36 @@ async def main():
     # Can also use decoder.decode_logs_sync if it is more convenient.
     decoded_logs = await decoder.decode_logs(res.data.logs)
 
-    # Let's count total volume, it is meaningless because of currency differences but good as an example.
-    total_volume = 0
+    # Let's count total volume for each address, it is meaningless because of currency differences but good as an example.
+    total_erc20_volume = {}
+
     for log in decoded_logs:
-        total_volume += log.body[0]
+        if not log.indexed[0]:
+            total_erc20_volume[log.indexed[0]] = 0
+
+        if not log.indexed[1]:
+            total_erc20_volume[log.indexed[1]] = 0
+
+        # We count for both sides but we will filter by our addresses later
+        # so we will ignore unnecessary addresses.
+        total_erc20_volume[log.indexed[0]] += log.body[0]
+        total_erc20_volume[log.indexed[1]] += log.body[0]
+
+    for address in addresses:
+        print(f"total erc20 transfer voume for address {address} is {total_erc20_volume[address]}")
+
+    total_wei_volume = {}
+    for tx in res.data.transactions:
+        # `from` is reserved in python so hypersync uses `from_`
+        if not total_wei_volume[tx.from_]:
+            total_wei_volume[tx.from_] = 0
+        if not total_wei_volume[tx.to]:
+            total_wei_volume[tx.to] = 0
+        
+        total_wei_volume[tx.from_] += tx.value
+        total_wei_volume[tx.to] += tx.value
     
-    total_blocks = res.next_block - query['from_block']
-
-    print(f"total volume was {total_volume} in {total_blocks} blocks")
-
+    for address in addresses:
+        print(f"total wei transfer volume for address {address} is {total_wei_volume[address]}")
 
 asyncio.run(main())
