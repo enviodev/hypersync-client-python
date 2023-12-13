@@ -3,10 +3,10 @@ import asyncio
 
 # the addresses we want to get data for
 addresses = [
-    "0xD1a923D70510814EaE7695A76326201cA06d080F".toLowerCase(),
-    "0xc0A101c4E9Bb4463BD2F5d6833c2276C36914Fb6".toLowerCase(),
-    "0xa0FBaEdC4C110f5A0c5E96c3eeAC9B5635b74CE7".toLowerCase(),
-    "0x32448eb389aBe39b20d5782f04a8d71a2b2e7189".toLowerCase(),
+    "0xD1a923D70510814EaE7695A76326201cA06d080F".lower(),
+    "0xc0A101c4E9Bb4463BD2F5d6833c2276C36914Fb6".lower(),
+    "0xa0FBaEdC4C110f5A0c5E96c3eeAC9B5635b74CE7".lower(),
+    "0x32448eb389aBe39b20d5782f04a8d71a2b2e7189".lower(),
 ]
 
 # Convert address to topic for filtering. Padds the address with zeroes.
@@ -114,11 +114,9 @@ async def main():
     total_erc20_volume = {}
 
     for log in decoded_logs:
-        if not log.indexed[0]:
-            total_erc20_volume[log.indexed[0]] = 0
-
-        if not log.indexed[1]:
-            total_erc20_volume[log.indexed[1]] = 0
+        # Check if the keys exist in the dictionary, if not, initialize them with 0
+        total_erc20_volume[log.indexed[0]] = total_erc20_volume.get(log.indexed[0], 0)
+        total_erc20_volume[log.indexed[1]] = total_erc20_volume.get(log.indexed[1], 0)
 
         # We count for both sides but we will filter by our addresses later
         # so we will ignore unnecessary addresses.
@@ -126,18 +124,17 @@ async def main():
         total_erc20_volume[log.indexed[1]] += log.body[0]
 
     for address in addresses:
-        print(f"total erc20 transfer voume for address {address} is {total_erc20_volume[address]}")
+        erc20_volume = total_erc20_volume[address]
+        print(f"total erc20 transfer voume for address {address} is {erc20_volume}")
 
     total_wei_volume = {}
     for tx in res.data.transactions:
         # `from` is reserved in python so hypersync uses `from_`
-        if not total_wei_volume[tx.from_]:
-            total_wei_volume[tx.from_] = 0
-        if not total_wei_volume[tx.to]:
-            total_wei_volume[tx.to] = 0
+        total_wei_volume[tx.from_] = total_wei_volume.get(tx.from_, 0)
+        total_wei_volume[tx.to] = total_wei_volume.get(tx.to, 0)
         
-        total_wei_volume[tx.from_] += tx.value
-        total_wei_volume[tx.to] += tx.value
+        total_wei_volume[tx.from_] += int(tx.value, 16)
+        total_wei_volume[tx.to] += int(tx.value, 16)
     
     for address in addresses:
         print(f"total wei transfer volume for address {address} is {total_wei_volume[address]}")

@@ -3,7 +3,7 @@ Python package for [Envio's](https://envio.dev/) HyperSync client written in Rus
 
 Can find more examples in `examples/`
 
-Ex: run `all-erc20.py` example
+Ex: run `examples/all-erc20.py`
 
 `$ python3 examples/all-erc20.py`
 

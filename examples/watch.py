@@ -27,7 +27,7 @@ async def main():
           }
         ],
         # Select the fields we are interested in, notice topics are selected as topic0,1,2,3
-        "fieldSelection": {
+        "field_selection": {
           "log": [
             "data",
             "address",
