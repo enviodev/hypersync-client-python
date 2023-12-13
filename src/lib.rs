@@ -205,7 +205,7 @@ pub struct QueryResponse {
 #[pymethods]
 impl QueryResponse {
     fn __bool__(&self) -> bool {
-        self.archive_height != None
+        self.archive_height.is_some()
             || self.next_block != i64::default()
             || self.total_execution_time != i64::default()
             || self.data.__bool__()
@@ -243,7 +243,7 @@ pub struct Events {
 #[pymethods]
 impl Events {
     fn __bool__(&self) -> bool {
-        self.archive_height != None
+        self.archive_height.is_some()
             || self.next_block != i64::default()
             || self.total_execution_time != i64::default()
             || !self.events.is_empty()

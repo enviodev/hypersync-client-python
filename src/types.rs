@@ -198,45 +198,47 @@ impl DecodedEvent {
     }
 }
 
-pub fn to_py(val: DynSolValue, py: Python) -> PyObject {
-    match val {
-        DynSolValue::Bool(b) => b.into_py(py),
-        DynSolValue::Int(v, _) => {
-            let bytes: [u8; Signed::<256, 4>::BYTES] = v.to_le_bytes();
-            let ptr: *const u8 = bytes.as_ptr();
-            unsafe {
-                let obj = ffi::_PyLong_FromByteArray(ptr, Signed::<256, 4>::BYTES, 1, 1);
-                PyObject::from_owned_ptr(py, obj)
+pub fn to_py(val: DynSolValue) -> PyObject {
+    Python::with_gil(|py| {
+        match val {
+            DynSolValue::Bool(b) => b.into_py(py),
+            DynSolValue::Int(v, _) => {
+                let bytes: [u8; Signed::<256, 4>::BYTES] = v.to_le_bytes();
+                let ptr: *const u8 = bytes.as_ptr();
+                unsafe {
+                    let obj = ffi::_PyLong_FromByteArray(ptr, Signed::<256, 4>::BYTES, 1, 1);
+                    PyObject::from_owned_ptr(py, obj)
+                }
             }
-        }
-        DynSolValue::Uint(v, _) => {
-            //v.into_py(py)
-            let bytes: [u8; Uint::<256, 4>::BYTES] = v.to_le_bytes();
-            let ptr: *const u8 = bytes.as_ptr();
-            unsafe {
-                let obj = ffi::_PyLong_FromByteArray(ptr, Uint::<256, 4>::BYTES, 1, 0);
-                PyObject::from_owned_ptr(py, obj)
+            DynSolValue::Uint(v, _) => {
+                //v.into_py(py)
+                let bytes: [u8; Uint::<256, 4>::BYTES] = v.to_le_bytes();
+                let ptr: *const u8 = bytes.as_ptr();
+                unsafe {
+                    let obj = ffi::_PyLong_FromByteArray(ptr, Uint::<256, 4>::BYTES, 1, 0);
+                    PyObject::from_owned_ptr(py, obj)
+                }
             }
+            DynSolValue::FixedBytes(bytes, _) => prefix_hex::encode(bytes.as_slice()).into_py(py),
+            DynSolValue::Address(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
+            DynSolValue::Function(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
+            DynSolValue::Bytes(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
+            DynSolValue::String(bytes) => prefix_hex::encode(bytes.as_bytes()).into_py(py),
+            DynSolValue::Array(vals) => vals
+                .into_iter()
+                .map(to_py)
+                .collect::<Vec<PyObject>>()
+                .into_py(py),
+            DynSolValue::FixedArray(vals) => vals
+                .into_iter()
+                .map(to_py)
+                .collect::<Vec<PyObject>>()
+                .into_py(py),
+            DynSolValue::Tuple(vals) => vals
+                .into_iter()
+                .map(to_py)
+                .collect::<Vec<PyObject>>()
+                .into_py(py),
         }
-        DynSolValue::FixedBytes(bytes, _) => prefix_hex::encode(bytes.as_slice()).into_py(py),
-        DynSolValue::Address(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
-        DynSolValue::Function(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
-        DynSolValue::Bytes(bytes) => prefix_hex::encode(bytes.as_slice()).into_py(py),
-        DynSolValue::String(bytes) => prefix_hex::encode(bytes.as_bytes()).into_py(py),
-        DynSolValue::Array(vals) => vals
-            .into_iter()
-            .map(|a| to_py(a, py))
-            .collect::<Vec<PyObject>>()
-            .into_py(py),
-        DynSolValue::FixedArray(vals) => vals
-            .into_iter()
-            .map(|a| to_py(a, py))
-            .collect::<Vec<PyObject>>()
-            .into_py(py),
-        DynSolValue::Tuple(vals) => vals
-            .into_iter()
-            .map(|a| to_py(a, py))
-            .collect::<Vec<PyObject>>()
-            .into_py(py),
-    }
+    })
 }
