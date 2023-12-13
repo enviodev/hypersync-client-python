@@ -1,7 +1,10 @@
 # hypersync-client-python
 Python package for [Envio's](https://envio.dev/) HyperSync client written in Rust
 
-Can find more examples in `examples/`
+feedback and issues are appreciated :)
+
+
+### Can find more examples in `examples/`
 
 Ex: run `examples/all-erc20.py`
 
