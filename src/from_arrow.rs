@@ -96,7 +96,7 @@ impl FromArrow for Transaction {
 
         if let Ok(col) = batch.column::<BinaryArray<i32>>("from") {
             for (target, val) in out.iter_mut().zip(col.iter()) {
-                target.from = val.map(prefix_hex::encode);
+                target.from_ = val.map(prefix_hex::encode);
             }
         }
 

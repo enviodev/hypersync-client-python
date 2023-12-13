@@ -72,7 +72,8 @@ impl Log {
 pub struct Transaction {
     pub block_hash: Option<String>,
     pub block_number: i64,
-    pub from: Option<String>,
+    // `from` is reserved in python so we use from_
+    pub from_: Option<String>,
     pub gas: Option<String>,
     pub gas_price: Option<String>,
     pub hash: Option<String>,
