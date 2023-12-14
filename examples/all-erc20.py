@@ -73,7 +73,7 @@ async def main():
     for log in res.data.logs:
         abis[log.address] = abi
 
-    # Create a decoder with out mapping
+    # Create a decoder with our mapping
     decoder = hypersync.Decoder(abis)
 
     # Decode the log on a background thread so we don't block the event loop.
