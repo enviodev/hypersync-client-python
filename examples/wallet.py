@@ -124,7 +124,7 @@ async def main():
         total_erc20_volume[log.indexed[1]] += log.body[0]
 
     for address in addresses:
-        erc20_volume = total_erc20_volume[address]
+        erc20_volume = total_erc20_volume.get(address, 0)
         print(f"total erc20 transfer voume for address {address} is {erc20_volume}")
 
     total_wei_volume = {}
@@ -137,6 +137,6 @@ async def main():
         total_wei_volume[tx.to] += int(tx.value, 16)
     
     for address in addresses:
-        print(f"total wei transfer volume for address {address} is {total_wei_volume[address]}")
+        print(f"total wei transfer volume for address {address} is {total_wei_volume.get(address, 0)}")
 
 asyncio.run(main())
