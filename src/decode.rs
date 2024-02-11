@@ -105,7 +105,10 @@ impl Decoder {
             .map(|t| t.as_ref().map(|t| t.as_slice()))
             .collect::<Vec<Option<&[u8]>>>();
 
-        let topic0 = topics.get(0).context("get topic0")?.context("get topic0")?;
+        let topic0 = topics
+            .first()
+            .context("get topic0")?
+            .context("get topic0")?;
 
         let data = log.data.as_ref().context("get data field")?;
         let data: Vec<u8> =

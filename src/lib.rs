@@ -16,7 +16,7 @@ mod from_arrow;
 mod query;
 mod types;
 
-use config::Config;
+use config::{Config, ParquetConfig};
 use query::Query;
 use types::{Block, Event, Log, Transaction};
 
@@ -30,27 +30,22 @@ pub struct HypersyncClient {
     inner: Arc<skar_client::Client>,
 }
 
+impl HypersyncClient {
+    fn new_impl(config: Config) -> Result<HypersyncClient> {
+        let config = config.try_convert().context("parse config")?;
+
+        Ok(HypersyncClient {
+            inner: Arc::new(skar_client::Client::new(config).context("create client")?),
+        })
+    }
+}
+
 #[pymethods]
 impl HypersyncClient {
     /// Create a new client with given config
     #[new]
-    fn new(
-        url: String,
-        bearer_token: Option<String>,
-        http_req_timeout_millis: Option<i64>,
-    ) -> PyResult<HypersyncClient> {
-        let cfg = Config::new(url, bearer_token, http_req_timeout_millis);
-
-        let cfg = cfg
-            .try_convert()
-            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
-
-        let client =
-            skar_client::Client::new(cfg).map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
-
-        Ok(HypersyncClient {
-            inner: Arc::new(client),
-        })
+    fn new(config: Config) -> PyResult<HypersyncClient> {
+        Self::new_impl(config).map_err(|e| PyIOError::new_err(format!("{:?}", e)))
     }
 
     /// Get the height of the source hypersync instance
@@ -68,16 +63,11 @@ impl HypersyncClient {
 
     /// Create a parquet file by executing a query.
     ///
-    /// If the query can't be finished in a single request, this function will
-    ///  keep on making requests using the pagination mechanism (next_block) until
-    ///  it reaches the end. It will stream data into the parquet file as it comes from
-    ///. the server.
-    ///
     /// Path should point to a folder that will contain the parquet files in the end.
     pub fn create_parquet_folder<'py>(
         &'py self,
         query: Query,
-        path: String,
+        config: ParquetConfig,
         py: Python<'py>,
     ) -> PyResult<&'py PyAny> {
         let inner = Arc::clone(&self.inner);
@@ -87,8 +77,12 @@ impl HypersyncClient {
                 .try_convert()
                 .map_err(|_e| PyValueError::new_err("parsing query"))?;
 
+            let config = config
+                .try_convert()
+                .map_err(|_e| PyValueError::new_err("parsing config"))?;
+
             inner
-                .create_parquet_folder(query, path)
+                .create_parquet_folder(query, config)
                 .await
                 .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
 
