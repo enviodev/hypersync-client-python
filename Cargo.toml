@@ -1,6 +1,6 @@
 [package]
 name = "hypersync"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -29,3 +29,4 @@ skar-format = "0.2.0"
 anyhow = "1"
 arrow2 = { version = "0.18" }
 prefix-hex = "0.7.1"
+env_logger = "0.11"
