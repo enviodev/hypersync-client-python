@@ -32,6 +32,8 @@ pub struct HypersyncClient {
 
 impl HypersyncClient {
     fn new_impl(config: Config) -> Result<HypersyncClient> {
+        env_logger::try_init().ok();
+
         let config = config.try_convert().context("parse config")?;
 
         Ok(HypersyncClient {
