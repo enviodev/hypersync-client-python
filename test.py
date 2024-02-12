@@ -13,7 +13,7 @@ ADDR = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
 QUERY = {
     # start from block 0 and go to the end of the chain (we don't specify a toBlock).
     "from_block": 17123123,
-    "to_block": 18123123,
+    "to_block": 17123223,
     # The logs we want. We will also automatically get transactions and blocks relating to these logs (the query implicitly joins them)
     "logs": [
         {
@@ -81,7 +81,16 @@ async def test_create_parquet_folder():
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
         await client.create_parquet_folder(
-            QUERY, {"path": "data", "retry": True, "hex_output": True}
+            QUERY, {
+                "path": "data",
+                "retry": True,
+                "hex_output": True,
+                "column_mapping": {
+                    "transaction": {
+                        "value": "float64",
+                    },
+                }
+            }
         )
         execution_time = (time.time() - start_time) * 1000
         total_time += execution_time

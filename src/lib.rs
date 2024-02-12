@@ -81,7 +81,7 @@ impl HypersyncClient {
 
             let config = config
                 .try_convert()
-                .map_err(|_e| PyValueError::new_err("parsing config"))?;
+                .map_err(|e| PyValueError::new_err(format!("parsing config: {:?}", e)))?;
 
             inner
                 .create_parquet_folder(query, config)

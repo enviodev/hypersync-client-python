@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use anyhow::{Context, Result};
 use serde::Serialize;
 
@@ -17,6 +19,19 @@ pub struct ParquetConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Requests are retried forever internally if this param is set to true.
     pub retry: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Define type mapping for output columns
+    pub column_mapping: Option<ColumnMapping>,
+}
+
+#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
+pub struct ColumnMapping {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block: Option<BTreeMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction: Option<BTreeMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub log: Option<BTreeMap<String, String>>,
 }
 
 impl ParquetConfig {
