@@ -72,11 +72,16 @@ QUERY = {
 
 
 async def test_create_parquet_folder():
-    client = hypersync.hypersync_client(
-        {
+
+    config = {
             "url": "https://eth.hypersync.xyz",
         }
+    
+    client = hypersync.hypersync_client(
+        config
     )
+
+    
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
