@@ -2,7 +2,7 @@ from .hypersync import HypersyncClient as _HypersyncClient
 from .hypersync import Decoder as _Decoder
 from typing import Optional, Dict
 from dataclasses import dataclass, asdict
-import enum
+from strenum import StrEnum
 
 class Decoder:
     def __init__(self, json_abis: Dict[str, str]):
@@ -20,7 +20,7 @@ class Decoder:
     def decode_events_sync(self, events: any) -> any:
         return self.inner.decode_events_sync(events)
 
-class DataType(enum.StrEnum):
+class DataType(StrEnum):
     UINT64 = 'uint64'
     UINT32 = 'uint32'
     INT64 = 'int64'
@@ -28,7 +28,7 @@ class DataType(enum.StrEnum):
     FLOAT32 = 'float32'
     FLOAT64 = 'float64'
 
-class BlockField(enum.StrEnum):
+class BlockField(StrEnum):
     NUMBER = 'number'
     HASH = 'hash'
     PARENT_HASH = 'parent_hash'
@@ -49,7 +49,7 @@ class BlockField(enum.StrEnum):
     UNCLES = 'uncles'
     BASE_FEE_PER_GAS = 'base_fee_per_gas'
 
-class TransactionField(enum.StrEnum):
+class TransactionField(StrEnum):
     BLOCK_HASH = 'block_hash'
     BLOCK_NUMBER = 'block_number'
     FROM = 'from'
@@ -77,7 +77,7 @@ class TransactionField(enum.StrEnum):
     STATUS = 'status'
     SIGHASH = 'sighash'
 
-class LogField(enum.StrEnum):
+class LogField(StrEnum):
     REMOVED = 'removed'
     LOG_INDEX = 'log_index'
     TRANSACTION_INDEX = 'transaction_index'
@@ -91,7 +91,7 @@ class LogField(enum.StrEnum):
     TOPIC2 = 'topic2'
     TOPIC3 = 'topic3'
 
-class TraceField(enum.StrEnum):
+class TraceField(StrEnum):
     FROM = 'from'
     TO = 'to'
     CALL_TYPE = 'call_type'
