@@ -1,6 +1,7 @@
 from .hypersync import HypersyncClient as _HypersyncClient
 from .hypersync import Decoder as _Decoder
-from typing import TypedDict, Optional, Dict
+from typing import Optional, Dict
+from dataclasses import dataclass, asdict
 import enum
 
 class Decoder:
@@ -109,54 +110,63 @@ class TraceField(enum.StrEnum):
     ERROR = 'error'
     SIGHASH = 'sighash'
 
-class LogSelection(TypedDict):
-    address: Optional[list[str]]
-    topics: Optional[list[list[str]]]
+@dataclass
+class LogSelection:
+    address: Optional[list[str]] = None
+    topics: Optional[list[list[str]]] = None
 
-class TransactionSelection(TypedDict):
-    from_: Optional[list[str]]
-    to: Optional[list[str]]
-    sighash: Optional[list[str]]
-    status: Optional[int]
+@dataclass
+class TransactionSelection:
+    from_: Optional[list[str]] = None
+    to: Optional[list[str]] = None
+    sighash: Optional[list[str]] = None
+    status: Optional[int] = None
 
-class TraceSelection(TypedDict):
-    from_: Optional[list[str]]
-    to: Optional[list[str]]
-    call_type: Optional[list[str]]
-    reward_type: Optional[list[str]]
-    type_: Optional[list[str]]
-    sighash: Optional[list[str]]
+@dataclass
+class TraceSelection:
+    from_: Optional[list[str]] = None
+    to: Optional[list[str]] = None
+    call_type: Optional[list[str]] = None
+    reward_type: Optional[list[str]] = None
+    type_: Optional[list[str]] = None
+    sighash: Optional[list[str]] = None
 
+@dataclass
 class FieldSelection:
-    block: Optional[list[BlockField]]
-    transaction: Optional[list[TransactionField]]
-    log: Optional[list[LogField]]
-    trace: Optional[list[TraceField]]
+    block: Optional[list[BlockField]] = None
+    transaction: Optional[list[TransactionField]] = None
+    log: Optional[list[LogField]] = None
+    trace: Optional[list[TraceField]] = None
 
-class Query(TypedDict):
+@dataclass
+class Query:
     from_block: int
-    to_block: Optional[int]
-    logs: Optional[list[LogSelection]]
-    include_all_blocks: Optional[bool]
     field_selection: FieldSelection
-    max_num_blocks: Optional[int]
-    max_num_transactions: Optional[int]
-    max_num_logs: Optional[int]
-    max_num_traces: Optional[int]
+    to_block: Optional[int] = None
+    logs: Optional[list[LogSelection]] = None
+    transactions: Optional[list[TransactionSelection]] = None
+    traces: Optional[list[TraceSelection]] = None
+    include_all_blocks: Optional[bool] = None
+    max_num_blocks: Optional[int] = None
+    max_num_transactions: Optional[int] = None
+    max_num_logs: Optional[int] = None
+    max_num_traces: Optional[int] = None
 
-class ColumnMapping(TypedDict):
-    block: Dict[BlockField, DataType]
-    transaction: Dict[TransactionField, DataType]
-    log: Dict[LogField, DataType]
-    trace: Dict[TraceField, DataType]
+@dataclass
+class ColumnMapping:
+    block: Optional[Dict[BlockField, DataType]] = None
+    transaction: Optional[Dict[TransactionField, DataType]] = None
+    log: Optional[Dict[LogField, DataType]] = None
+    trace: Optional[Dict[TraceField, DataType]] = None
 
-class ParquetConfig(TypedDict):
+@dataclass
+class ParquetConfig:
     path: str
-    hex_output: Optional[bool]
-    batch_size: Optional[int]
-    concurrency: Optional[int]
-    retry: Optional[bool]
-    column_mapping: Optional[ColumnMapping]
+    hex_output: Optional[bool] = None
+    batch_size: Optional[int] = None
+    concurrency: Optional[int] = None
+    retry: Optional[bool] = None
+    column_mapping: Optional[ColumnMapping] = None
 
 class HypersyncClient:
     def __init__(self, url="https://eth.hypersync.xyz", bearer_token=None, http_req_timeout_millis=None):
@@ -169,11 +179,11 @@ class HypersyncClient:
     async def get_height(self) -> int:
         return await self.inner.get_height()
 
-    async def create_parquet_folder(self, query: Query, config: ParquetConfig) -> any:
-        return await self.inner.create_parquet_folder(query, config)
+    async def create_parquet_folder(self, query: Query, config: ParquetConfig) -> None:
+        return await self.inner.create_parquet_folder(asdict(query), asdict(config))
 
     async def send_req(self, query: Query) -> any:
-        return await self.inner.send_req(query)
+        return await self.inner.send_req(asdict(query))
 
     async def send_events_req(self, query: Query) -> any:
-        return await self.inner.send_events_req(query)
+        return await self.inner.send_events_req(asdict(query))

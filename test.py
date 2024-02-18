@@ -10,25 +10,22 @@ NUM_BENCHMARK_RUNS = 1
 # The address we want to get all ERC20 transfers and transactions for
 ADDR = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
 
-# The query to run
-QUERY: hypersync.Query = {
-    # start from block 0 and go to the end of the chain (we don't specify a toBlock).
-    "from_block": 17123123,
-    "to_block": 17123223,
-    # The logs we want. We will also automatically get transactions and blocks relating to these logs (the query implicitly joins them)
-    "logs": [
-        {
-            "topics": [
+QUERY = hypersync.Query(
+    from_block=17123123,
+    to_block=17123223,
+    logs=[
+        hypersync.LogSelection(
+            topics=[
                 # We want ERC20 transfers
                 ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
                 [],
                 # We want the transfers that go to this address.
                 # appending zeroes because topic is 32 bytes but address is 20 bytes
                 ["0x000000000000000000000000" + ADDR],
-            ],
-        },
-        {
-            "topics": [
+            ]
+        ),
+        hypersync.LogSelection(
+            topics=[
                 # We want ERC20 transfers
                 ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
                 # We want the transfers that go to this address.
@@ -36,23 +33,24 @@ QUERY: hypersync.Query = {
                 ["0x000000000000000000000000" + ADDR],
                 [],
             ],
-        },
+        )
     ],
-    "transactions": [
-        # We want all the transactions that come from this address
-        {"from": ["0x" + ADDR]},
-        # We want all the transactions that went to this address
-        {"to": ["0x" + ADDR]},
+    transactions=[
+        hypersync.TransactionSelection(
+            from_=["0x" + ADDR]
+        ),
+        hypersync.TransactionSelection(
+            to=["0x" + ADDR]
+        ),
     ],
-    "include_all_blocks": True,
-    # Select the fields we are interested in
-    "field_selection": {
-        "block": [
+    include_all_blocks=True,
+    field_selection=hypersync.FieldSelection(
+        block=[
             BlockField.NUMBER,
             BlockField.TIMESTAMP,
             BlockField.HASH,
         ],
-        "log": [
+        log=[
             LogField.BLOCK_NUMBER,
             LogField.LOG_INDEX,
             LogField.TRANSACTION_INDEX,
@@ -63,7 +61,7 @@ QUERY: hypersync.Query = {
             LogField.TOPIC2,
             LogField.TOPIC3,
         ],
-        "transaction": [
+        transaction=[
             TransactionField.BLOCK_NUMBER,
             TransactionField.TRANSACTION_INDEX,
             TransactionField.HASH,
@@ -72,15 +70,15 @@ QUERY: hypersync.Query = {
             TransactionField.VALUE,
             TransactionField.INPUT,
         ],
-        "trace": [
+        trace=[
             TraceField.TRANSACTION_HASH,
             TraceField.ERROR,
             TraceField.OUTPUT,
             TraceField.CALL_TYPE,
             TraceField.TRANSACTION_POSITION,
-        ]
-    },
-}
+        ],
+    )
+)
 
 async def test_create_parquet_folder():
     client = hypersync.HypersyncClient()
@@ -89,20 +87,20 @@ async def test_create_parquet_folder():
         start_time = time.time()
 
         await client.create_parquet_folder(
-            QUERY, {
-                "path": "data",
-                "retry": True,
-                "hex_output": True,
-                "column_mapping": {
-                    "trace": {
+            QUERY, hypersync.ParquetConfig(
+                path="data",
+                retry=True,
+                hex_output=True,
+                column_mapping=hypersync.ColumnMapping(
+                    trace={
                         TraceField.TRANSACTION_POSITION: DataType.INT32,
                     },
-                    "transaction": {
+                    transaction={
                         TransactionField.BLOCK_NUMBER: DataType.INT64,
                         TransactionField.VALUE: DataType.FLOAT32,
-                    },
-                }
-            }
+                    }
+                )
+            )
         )
         execution_time = (time.time() - start_time) * 1000
         total_time += execution_time
@@ -154,7 +152,7 @@ async def test_decode_logs():
     abis = {}
     for log in res.data.logs:
         abis[log.address] = json
-    decoder = hypersync.Decoder(abis)
+    decoder = hypersync.Decoder(json_abis=abis)
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()

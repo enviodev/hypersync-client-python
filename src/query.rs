@@ -4,7 +4,8 @@ use serde::Serialize;
 #[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
 pub struct TraceSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub from: Option<Vec<String>>,
+    #[serde(rename = "from")]
+    pub from_: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub to: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -36,7 +37,8 @@ pub struct TransactionSelection {
     ///  will be returned. Keep in mind that this has an and relationship with to filter, so each transaction should
     ///  match both of them. Empty means match all.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub from: Option<Vec<String>>,
+    #[serde(rename = "from")]
+    pub from_: Option<Vec<String>>,
     /// Address the transaction should go to. If transaction.to matches any of these, the transaction will
     ///  be returned. Keep in mind that this has an and relationship with from filter, so each transaction should
     ///  match both of them. Empty means match all.
