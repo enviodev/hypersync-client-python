@@ -2437,9 +2437,9 @@ checksum = "f27f6278552951f1f2b8cf9da965d10969b2efdea95a6ec47987ab46edfe263a"
 
 [[package]]
 name = "skar-client"
-version = "0.14.1"
+version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09d11871d5dcf23a20c076c4b4c403851ffbc86f06def7f27f8a60bb431a63c4"
+checksum = "73e4d52f13e6a4459d023595f21c0a70feaf76325b598dedde115db5d07694d3"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
