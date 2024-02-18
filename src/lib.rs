@@ -25,7 +25,7 @@ fn hypersync(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<HypersyncClient>()?;
     m.add_class::<Decoder>()
 }
-#[pyclass(name = "hypersync_client")]
+#[pyclass]
 pub struct HypersyncClient {
     inner: Arc<skar_client::Client>,
 }

@@ -1,6 +1,7 @@
 import hypersync
 import asyncio
 import time
+from hypersync import DataType, BlockField, TransactionField, LogField, TraceField
 
 # for benchmarking times.  Will run the function this many times and take the
 # average
@@ -10,7 +11,7 @@ NUM_BENCHMARK_RUNS = 1
 ADDR = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
 
 # The query to run
-QUERY = {
+QUERY: hypersync.Query = {
     # start from block 0 and go to the end of the chain (we don't specify a toBlock).
     "from_block": 17123123,
     "to_block": 17123223,
@@ -46,48 +47,59 @@ QUERY = {
     "include_all_blocks": True,
     # Select the fields we are interested in
     "field_selection": {
-        "block": ["number", "timestamp", "hash"],
+        "block": [
+            BlockField.NUMBER,
+            BlockField.TIMESTAMP,
+            BlockField.HASH,
+        ],
         "log": [
-            "block_number",
-            "log_index",
-            "transaction_index",
-            "data",
-            "address",
-            "topic0",
-            "topic1",
-            "topic2",
-            "topic3",
+            LogField.BLOCK_NUMBER,
+            LogField.LOG_INDEX,
+            LogField.TRANSACTION_INDEX,
+            LogField.DATA,
+            LogField.ADDRESS,
+            LogField.TOPIC0,
+            LogField.TOPIC1,
+            LogField.TOPIC2,
+            LogField.TOPIC3,
         ],
         "transaction": [
-            "block_number",
-            "transaction_index",
-            "hash",
-            "from",
-            "to",
-            "value",
-            "input",
+            TransactionField.BLOCK_NUMBER,
+            TransactionField.TRANSACTION_INDEX,
+            TransactionField.HASH,
+            TransactionField.FROM,
+            TransactionField.TO,
+            TransactionField.VALUE,
+            TransactionField.INPUT,
         ],
+        "trace": [
+            TraceField.TRANSACTION_HASH,
+            TraceField.ERROR,
+            TraceField.OUTPUT,
+            TraceField.CALL_TYPE,
+            TraceField.TRANSACTION_POSITION,
+        ]
     },
 }
 
-
 async def test_create_parquet_folder():
-    client = hypersync.hypersync_client(
-        {
-            "url": "https://eth.hypersync.xyz",
-        }
-    )
+    client = hypersync.HypersyncClient()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
+
         await client.create_parquet_folder(
             QUERY, {
                 "path": "data",
                 "retry": True,
                 "hex_output": True,
                 "column_mapping": {
+                    "trace": {
+                        TraceField.TRANSACTION_POSITION: DataType.INT32,
+                    },
                     "transaction": {
-                        "value": "float64",
+                        TransactionField.BLOCK_NUMBER: DataType.INT64,
+                        TransactionField.VALUE: DataType.FLOAT32,
                     },
                 }
             }
@@ -99,11 +111,7 @@ async def test_create_parquet_folder():
 
 
 async def test_send_req():
-    client = hypersync.hypersync_client(
-        {
-            "url": "https://eth.hypersync.xyz",
-        }
-    )
+    client = hypersync.HypersyncClient()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
@@ -115,11 +123,7 @@ async def test_send_req():
 
 
 async def test_send_events_req():
-    client = hypersync.hypersync_client(
-        {
-            "url": "https://eth.hypersync.xyz",
-        }
-    )
+    client = hypersync.HypersyncClient()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
@@ -131,11 +135,7 @@ async def test_send_events_req():
 
 
 async def test_get_height():
-    client = hypersync.hypersync_client(
-        {
-            "url": "https://eth.hypersync.xyz",
-        }
-    )
+    client = hypersync.HypersyncClient()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
@@ -147,11 +147,7 @@ async def test_get_height():
 
 
 async def test_decode_logs():
-    client = hypersync.hypersync_client(
-        {
-            "url": "https://eth.hypersync.xyz",
-        }
-    )
+    client = hypersync.HypersyncClient()
     res = await client.send_req(QUERY)
     with open("./erc20.abi.json", "r") as json_file:
         json = json_file.read()
@@ -170,11 +166,7 @@ async def test_decode_logs():
 
 
 async def test_decode_events():
-    client = hypersync.hypersync_client(
-        {
-            "url": "https://eth.hypersync.xyz",
-        }
-    )
+    client = hypersync.HypersyncClient()
     res = await client.send_events_req(QUERY)
     with open("./erc20.abi.json", "r") as json_file:
         json = json_file.read()

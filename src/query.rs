@@ -2,6 +2,23 @@ use anyhow::{Context, Result};
 use serde::Serialize;
 
 #[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
+pub struct TraceSelection {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub from: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub to: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub call_type: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reward_type: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "type")]
+    pub type_: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sighash: Option<Vec<String>>,
+}
+
+#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
 pub struct LogSelection {
     /// Address of the contract, any logs that has any of these addresses will be returned.
     /// Empty means match all.
@@ -41,6 +58,8 @@ pub struct FieldSelection {
     pub transaction: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub log: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trace: Option<Vec<String>>,
 }
 
 #[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
@@ -64,6 +83,10 @@ pub struct Query {
     ///  it will return transactions that are related to the returned logs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transactions: Option<Vec<TransactionSelection>>,
+    /// List of trace selections, the query will return traces that match any of these selections and
+    ///  it will return traces that are related to the returned logs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub traces: Option<Vec<TraceSelection>>,
     /// Weather to include all blocks regardless of if they are related to a returned transaction or log. Normally
     ///  the server will return only the blocks that are related to the transaction or logs in the response. But if this
     ///  is set to true, the server will return data for all blocks in the requested range [from_block, to_block).
@@ -84,6 +107,10 @@ pub struct Query {
     ///  it won't overshoot by too much.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_num_logs: Option<i64>,
+    /// Maximum number of traces that should be returned, the server might return more traces than this number but
+    ///  it won't overshoot by too much.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_num_traces: Option<i64>,
 }
 
 impl Query {

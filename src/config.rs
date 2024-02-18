@@ -32,6 +32,8 @@ pub struct ColumnMapping {
     pub transaction: Option<BTreeMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub log: Option<BTreeMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trace: Option<BTreeMap<String, String>>,
 }
 
 impl ParquetConfig {
