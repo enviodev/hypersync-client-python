@@ -69,6 +69,7 @@ class TransactionField(enum.StrEnum):
     CHAIN_ID = 'chain_id'
     CUMULATIVE_GAS_USED = 'cumulative_gas_used'
     EFFECTIVE_GAS_PRICE = 'effective_gas_price'
+    GAS_USED = 'gas_used'
     CONTRACT_ADDRESS = 'contract_address'
     LOGS_BLOOM = 'logs_bloom'
     TYPE = 'type'
