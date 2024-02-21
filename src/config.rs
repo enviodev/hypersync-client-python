@@ -22,6 +22,9 @@ pub struct ParquetConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Define type mapping for output columns
     pub column_mapping: Option<ColumnMapping>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Define type mapping for output columns
+    pub event_signature: Option<String>,
 }
 
 #[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
@@ -34,6 +37,8 @@ pub struct ColumnMapping {
     pub log: Option<BTreeMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub trace: Option<BTreeMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub decoded_log: Option<BTreeMap<String, String>>,
 }
 
 impl ParquetConfig {

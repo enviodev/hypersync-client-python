@@ -159,6 +159,7 @@ class ColumnMapping:
     transaction: Optional[Dict[TransactionField, DataType]] = None
     log: Optional[Dict[LogField, DataType]] = None
     trace: Optional[Dict[TraceField, DataType]] = None
+    decoded_log: Optional[Dict[str, DataType]] = None
 
 @dataclass
 class ParquetConfig:
@@ -168,6 +169,7 @@ class ParquetConfig:
     concurrency: Optional[int] = None
     retry: Optional[bool] = None
     column_mapping: Optional[ColumnMapping] = None
+    event_signature: Optional[str] = None
 
 class HypersyncClient:
     def __init__(self, url="https://eth.hypersync.xyz", bearer_token=None, http_req_timeout_millis=None):

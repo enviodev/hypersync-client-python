@@ -16,22 +16,12 @@ QUERY = hypersync.Query(
     logs=[
         hypersync.LogSelection(
             topics=[
-                # We want ERC20 transfers
                 ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                [],
-                # We want the transfers that go to this address.
-                # appending zeroes because topic is 32 bytes but address is 20 bytes
-                ["0x000000000000000000000000" + ADDR],
             ]
         ),
         hypersync.LogSelection(
             topics=[
-                # We want ERC20 transfers
                 ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-                # We want the transfers that go to this address.
-                # appending zeroes because topic is 32 bytes but address is 20 bytes
-                ["0x000000000000000000000000" + ADDR],
-                [],
             ],
         )
     ],
@@ -98,8 +88,12 @@ async def test_create_parquet_folder():
                     transaction={
                         TransactionField.BLOCK_NUMBER: DataType.INT64,
                         TransactionField.VALUE: DataType.FLOAT32,
-                    }
-                )
+                    },
+                    decoded_log={
+                        "value": DataType.FLOAT64,
+                    },
+                ),
+                event_signature="Transfer(address indexed from, address indexed to, uint256 value)",
             )
         )
         execution_time = (time.time() - start_time) * 1000
