@@ -46,6 +46,7 @@ async def collect_events():
     await client.create_parquet_folder(query, config)
 
 def analyze_events():
+# create polars dataframe from arrow instead of read_parquet
     logs = polars.read_parquet(
         "data/logs.parquet",
     )

@@ -1,4 +1,5 @@
 use decode::Decoder;
+use pyo3::ffi::Py_uintptr_t;
 use pyo3::{
     exceptions::{PyIOError, PyValueError},
     prelude::*,
@@ -8,7 +9,10 @@ use pyo3_asyncio::tokio::future_into_py;
 use std::{collections::BTreeMap, sync::Arc};
 
 use anyhow::{Context, Result};
+use arrow2::datatypes::{DataType, Field};
+
 use from_arrow::FromArrow;
+use pyo3::types::PyList;
 
 mod config;
 mod decode;
@@ -110,6 +114,102 @@ impl HypersyncClient {
 
             let res = convert_response_to_query_response(res)
                 .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
+            Ok(res)
+        })
+    }
+
+    pub fn send_arrow_req<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<&'py PyAny> {
+        // initialize an array
+        let inner = Arc::clone(&self.inner);
+
+        future_into_py::<_, &PyList>(py, async move {
+            let query = query
+                .try_convert()
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
+            let res = inner
+                .send::<skar_client::ArrowIpc>(&query)
+                .await
+                .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
+
+            let pa = py.import("pyarrow.ipc")?;
+
+            let blocks = {
+                let blocks = res
+                    .data
+                    .blocks
+                    .iter()
+                    .map(Block::from_arrow)
+                    .collect::<Result<Vec<_>>>()
+                    .context("map blocks from arrow")
+                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?
+                    .concat();
+
+                let iter = Box::new(blocks.into_iter().map(Ok)) as _;
+                let schema = res.data.blocks.get(0).unwrap().schema.fields.clone();
+                let field = Field::new("a", DataType::Struct(schema), true);
+
+                let stream = Box::new(arrow2::ffi::export_iterator(iter, field));
+
+                let py_stream = pa.getattr("RecordBatchReader")?.call_method1(
+                    "_import_from_c",
+                    ((&*stream as *const arrow2::ffi::ArrowArrayStream) as Py_uintptr_t,),
+                )?;
+
+                py_stream.to_object(py)
+            };
+            let transactions = {
+                let transactions = res
+                    .data
+                    .transactions
+                    .iter()
+                    .map(Transaction::from_arrow)
+                    .collect::<Result<Vec<_>>>()
+                    .context("map transactions from arrow")
+                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?
+                    .concat();
+
+                let iter = Box::new(transactions.into_iter().map(Ok)) as _;
+                let schema = res.data.transactions.get(0).unwrap().schema.fields.clone();
+                let field = Field::new("a", DataType::Struct(schema), true);
+
+                let stream = Box::new(arrow2::ffi::export_iterator(iter, field));
+
+                let py_stream = pa.getattr("RecordBatchReader")?.call_method1(
+                    "_import_from_c",
+                    ((&*stream as *const arrow2::ffi::ArrowArrayStream) as Py_uintptr_t,),
+                )?;
+
+                py_stream.to_object(py)
+            };
+
+            let logs = {
+                let logs = res
+                    .data
+                    .logs
+                    .iter()
+                    .map(Log::from_arrow)
+                    .collect::<Result<Vec<_>>>()
+                    .context("map logs from arrow")
+                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?
+                    .concat();
+
+                let iter = Box::new(logs.into_iter().map(Ok)) as _;
+                let schema = res.data.logs.get(0).unwrap().schema.fields.clone();
+                let field = Field::new("a", DataType::Struct(schema), true);
+
+                let stream = Box::new(arrow2::ffi::export_iterator(iter, field));
+
+                let py_stream = pa.getattr("RecordBatchReader")?.call_method1(
+                    "_import_from_c",
+                    ((&*stream as *const arrow2::ffi::ArrowArrayStream) as Py_uintptr_t,),
+                )?;
+
+                py_stream.to_object(py)
+            };
+
+            let res = PyList::new(py, vec![blocks, transactions, logs]);
 
             Ok(res)
         })
