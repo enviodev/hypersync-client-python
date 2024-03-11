@@ -9,10 +9,13 @@ use pyo3_asyncio::tokio::future_into_py;
 use std::{collections::BTreeMap, sync::Arc};
 
 use anyhow::{Context, Result};
+use arrow2::array::{Array, StructArray};
 use arrow2::datatypes::{DataType, Field};
+use arrow2::ffi;
+use itertools::{Itertools, izip};
+use pyo3::types::PyList;
 
 use from_arrow::FromArrow;
-use pyo3::types::PyList;
 
 mod config;
 mod decode;
@@ -123,7 +126,7 @@ impl HypersyncClient {
         // initialize an array
         let inner = Arc::clone(&self.inner);
 
-        future_into_py::<_, &PyList>(py, async move {
+        future_into_py::<_, QueryResponseArrow>(py, async move {
             let query = query
                 .try_convert()
                 .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
@@ -133,91 +136,68 @@ impl HypersyncClient {
                 .await
                 .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
 
-            let pa = py.import("pyarrow.ipc")?;
 
-            let blocks = {
-                let blocks = res
-                    .data
-                    .blocks
-                    .iter()
-                    .map(Block::from_arrow)
-                    .collect::<Result<Vec<_>>>()
-                    .context("map blocks from arrow")
-                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?
-                    .concat();
 
-                let iter = Box::new(blocks.into_iter().map(Ok)) as _;
-                let schema = res.data.blocks.get(0).unwrap().schema.fields.clone();
-                let field = Field::new("a", DataType::Struct(schema), true);
 
-                let stream = Box::new(arrow2::ffi::export_iterator(iter, field));
 
-                let py_stream = pa.getattr("RecordBatchReader")?.call_method1(
-                    "_import_from_c",
-                    ((&*stream as *const arrow2::ffi::ArrowArrayStream) as Py_uintptr_t,),
-                )?;
+            let pyarrow_blocks: PyResult<PyObject> = Python::with_gil(|py| {
+                let pyarrow = py.import("pyarrow.ipc")?;
+                let list = PyList::empty(py);
+                let blocks_schema = res.data.blocks.first().unwrap().schema.fields.clone();
+                let block_arrays = izip!(res.data.blocks.iter().map(|batch| batch.chunk.arrays()));
 
-                py_stream.to_object(py)
-            };
-            let transactions = {
-                let transactions = res
-                    .data
-                    .transactions
-                    .iter()
-                    .map(Transaction::from_arrow)
-                    .collect::<Result<Vec<_>>>()
-                    .context("map transactions from arrow")
-                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?
-                    .concat();
+                for (array, field) in block_arrays.zip(blocks_schema.into_iter()) {
 
-                let iter = Box::new(transactions.into_iter().map(Ok)) as _;
-                let schema = res.data.transactions.get(0).unwrap().schema.fields.clone();
-                let field = Field::new("a", DataType::Struct(schema), true);
+                    let field = Field::new(field.name.clone(), DataType::Struct(vec![field]), true);
+                    let mut tot_array:Vec<Box<dyn Array>> = Vec::new();
+                    for part in array {
+                        tot_array.push(part.to_boxed());
+                    }
 
-                let stream = Box::new(arrow2::ffi::export_iterator(iter, field));
+                    let array = StructArray::new(
+                        field.data_type.clone(),
+                        tot_array,
+                        None,
+                    ).boxed();
+                    let iter = Box::new(vec![array].into_iter().map(Ok)) as _;
 
-                let py_stream = pa.getattr("RecordBatchReader")?.call_method1(
-                    "_import_from_c",
-                    ((&*stream as *const arrow2::ffi::ArrowArrayStream) as Py_uintptr_t,),
-                )?;
+                    let stream = Box::new(ffi::export_iterator(iter, field));
+                    let py_stream = pyarrow.getattr("RecordBatchReader")?.call_method1(
+                        "_import_from_c",
+                        ((&*stream as *const ffi::ArrowArrayStream) as Py_uintptr_t,),
+                    )?;
+                    list.append(py_stream.to_object(py))?;
+                }
+                Ok(list.to_object(py))
+            });
 
-                py_stream.to_object(py)
-            };
+            let pyarrow_blocks = pyarrow_blocks.expect("get blocks");
 
-            let logs = {
-                let logs = res
-                    .data
-                    .logs
-                    .iter()
-                    .map(Log::from_arrow)
-                    .collect::<Result<Vec<_>>>()
-                    .context("map logs from arrow")
-                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?
-                    .concat();
-
-                let iter = Box::new(logs.into_iter().map(Ok)) as _;
-                let schema = res.data.logs.get(0).unwrap().schema.fields.clone();
-                let field = Field::new("a", DataType::Struct(schema), true);
-
-                let stream = Box::new(arrow2::ffi::export_iterator(iter, field));
-
-                let py_stream = pa.getattr("RecordBatchReader")?.call_method1(
-                    "_import_from_c",
-                    ((&*stream as *const arrow2::ffi::ArrowArrayStream) as Py_uintptr_t,),
-                )?;
-
-                py_stream.to_object(py)
-            };
-
-            let res = PyList::new(py, vec![blocks, transactions, logs]);
-
-            Ok(res)
+            Ok(QueryResponseArrow {
+                archive_height: res
+                    .archive_height
+                    .map(|h| h.try_into())
+                    .transpose()
+                    .context("convert height")
+                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?,
+                next_block: res
+                    .next_block
+                    .try_into()
+                    .context("convert next_block")
+                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?,
+                total_execution_time: res
+                    .total_execution_time
+                    .try_into()
+                    .context("convert total_execution_time")
+                    .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?,
+                data: pyarrow_blocks,
+            })
         })
     }
 
     /// Send a event query request to the source hypersync instance.
     ///
-    /// This executes the same query as send_req function on the source side but
+    /// This executes the same query as send_events_req function on the source side but
     /// it groups data for each event(log) so it is easier to process it.
     pub fn send_events_req<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<&'py PyAny> {
         let inner = Arc::clone(&self.inner);
@@ -285,6 +265,30 @@ impl QueryResponseData {
 #[pyclass]
 #[pyo3(get_all)]
 #[derive(Clone, Debug)]
+pub struct QueryResponseDataArrow {
+    pub blocks: PyObject,
+    pub transactions: PyObject,
+    pub logs: PyObject,
+}
+
+#[pymethods]
+impl QueryResponseDataArrow {
+    fn __bool__(&self) -> bool {
+        true
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone, Debug)]
 pub struct QueryResponse {
     /// Current height of the source hypersync instance
     pub archive_height: Option<i64>,
@@ -305,6 +309,39 @@ impl QueryResponse {
             || self.next_block != i64::default()
             || self.total_execution_time != i64::default()
             || self.data.__bool__()
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone, Debug)]
+pub struct QueryResponseArrow {
+    /// Current height of the source hypersync instance
+    pub archive_height: Option<i64>,
+    /// Next block to query for, the responses are paginated so,
+    ///  the caller should continue the query from this block if they
+    ///  didn't get responses up to the to_block they specified in the Query.
+    pub next_block: i64,
+    /// Total time it took the hypersync instance to execute the query.
+    pub total_execution_time: i64,
+    /// Response data
+    pub data: PyObject,
+}
+
+#[pymethods]
+impl QueryResponseArrow {
+    fn __bool__(&self) -> bool {
+        self.archive_height.is_some()
+            || self.next_block != i64::default()
+            || self.total_execution_time != i64::default()
     }
 
     fn __repr__(&self) -> PyResult<String> {
