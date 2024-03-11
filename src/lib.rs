@@ -12,7 +12,7 @@ use anyhow::{Context, Result};
 use arrow2::array::{Array, StructArray};
 use arrow2::datatypes::{DataType, Field};
 use arrow2::ffi;
-use itertools::{Itertools, izip};
+use itertools::Itertools;
 use pyo3::types::PyList;
 
 use from_arrow::FromArrow;
@@ -136,30 +136,42 @@ impl HypersyncClient {
                 .await
                 .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
 
-
-
-
-
             let pyarrow_blocks: PyResult<PyObject> = Python::with_gil(|py| {
                 let pyarrow = py.import("pyarrow.ipc")?;
                 let list = PyList::empty(py);
                 let blocks_schema = res.data.blocks.first().unwrap().schema.fields.clone();
-                let block_arrays = izip!(res.data.blocks.iter().map(|batch| batch.chunk.arrays()));
 
-                for (array, field) in block_arrays.zip(blocks_schema.into_iter()) {
+                assert_eq!(res.data.blocks.first().unwrap().chunk.arrays().len(), 3);
+                assert_eq!(blocks_schema.len(), 3);
 
+                let number_iterators = res
+                    .data
+                    .blocks
+                    .iter()
+                    .map(|batch| batch.chunk.arrays().get(0).unwrap().to_boxed())
+                    .collect_vec();
+                let hash_iterators = res
+                    .data
+                    .blocks
+                    .iter()
+                    .map(|batch| batch.chunk.arrays().get(1).unwrap().to_boxed())
+                    .collect_vec();
+                let timestamp_iterators = res
+                    .data
+                    .blocks
+                    .iter()
+                    .map(|batch| batch.chunk.arrays().get(2).unwrap().to_boxed())
+                    .collect_vec();
+
+                for (field, array) in blocks_schema.into_iter().zip([
+                    number_iterators,
+                    hash_iterators,
+                    timestamp_iterators,
+                ]) {
                     let field = Field::new(field.name.clone(), DataType::Struct(vec![field]), true);
-                    let mut tot_array:Vec<Box<dyn Array>> = Vec::new();
-                    for part in array {
-                        tot_array.push(part.to_boxed());
-                    }
-
-                    let array = StructArray::new(
-                        field.data_type.clone(),
-                        tot_array,
-                        None,
-                    ).boxed();
-                    let iter = Box::new(vec![array].into_iter().map(Ok)) as _;
+                    let struct_array =
+                        StructArray::new(field.data_type.clone(), array, None).boxed();
+                    let iter = Box::new(vec![struct_array].into_iter().map(Ok)) as _;
 
                     let stream = Box::new(ffi::export_iterator(iter, field));
                     let py_stream = pyarrow.getattr("RecordBatchReader")?.call_method1(
