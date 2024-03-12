@@ -191,5 +191,5 @@ class HypersyncClient:
     async def send_events_req(self, query: Query) -> any:
         return await self.inner.send_events_req(asdict(query))
 
-    async def send_arrow_req(self, query: Query) -> any:
-        return await self.inner.send_arrow_req(asdict(query))
+    async def send_req_arrow(self, query: Query) -> any:
+        return await self.inner.send_req_arrow(asdict(query))
