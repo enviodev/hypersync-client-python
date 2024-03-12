@@ -135,7 +135,19 @@ impl HypersyncClient {
                 .await
                 .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
 
-            let query_responce = convert_response_to_pyarrow(py, res)
+            let blocks = res.data.blocks.clone();
+            let transactions = res.data.transactions.clone();
+            let logs = res.data.logs.clone();
+
+            let (blocks, transactions, logs) = Python::with_gil(|py| {
+                let pyarrow = py.import("pyarrow.ipc")?;
+                let blocks = convert_batch_to_pyarrow(py, pyarrow, blocks)?;
+                let transactions = convert_batch_to_pyarrow(py, pyarrow, transactions)?;
+                let logs = convert_batch_to_pyarrow(py, pyarrow, logs)?;
+                Ok::<(Vec<PyObject>, Vec<PyObject>, Vec<PyObject>), PyErr>((blocks, transactions, logs))
+            })?;
+
+            let query_responce = compose_pyarrow_response(res, blocks, transactions, logs)
                 .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
 
             Ok(query_responce)
@@ -436,23 +448,12 @@ fn convert_response_to_query_response(res: skar_client::QueryResponse) -> Result
     })
 }
 
-fn convert_response_to_pyarrow<'py>(
-    py: Python<'py>,
+fn compose_pyarrow_response(
     res: skar_client::QueryResponse,
+    blocks: Vec<PyObject>,
+    transactions: Vec<PyObject>,
+    logs: Vec<PyObject>,
 ) -> Result<QueryResponseArrow> {
-
-    let blocks = res.data.blocks;
-    let transactions = res.data.transactions;
-    let logs = res.data.logs;
-
-    let (blocks, transactions, logs) = Python::with_gil(|py| {
-        let pyarrow = py.import("pyarrow.ipc")?;
-        let blocks = convert_batch_to_pyarrow(py, pyarrow, blocks)?;
-        let transactions = convert_batch_to_pyarrow(py, pyarrow, transactions)?;
-        let logs = convert_batch_to_pyarrow(py, pyarrow, logs)?;
-        Ok::<(Vec<PyObject>, Vec<PyObject>, Vec<PyObject>), PyErr>((blocks, transactions, logs))
-    })?;
-
     Ok(QueryResponseArrow {
         archive_height: res
             .archive_height
@@ -482,7 +483,7 @@ fn convert_batch_to_pyarrow<'py>(
     assert_eq!(batches.first().unwrap().chunk.arrays().len(), schema.len());
 
     // TODO: probably could avoid to_boxed usage and consume array somehow to avoid allocation
-    let data = vec![vec![]; batches.first().unwrap().chunk.arrays().len()];
+    let mut data = vec![vec![]; batches.first().unwrap().chunk.arrays().len()];
     for batch in batches {
         for (index, array) in batch.chunk.arrays().iter().enumerate() {
             data[index].push(array.to_boxed());
