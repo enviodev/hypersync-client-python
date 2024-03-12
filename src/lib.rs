@@ -242,6 +242,8 @@ pub struct QueryArrowResponse {
 
 #[pymethods]
 impl QueryArrowResponse {
+    /// TODO: if we want to implement this method we could call _is_initialized method,
+    /// but we will need py reference
     fn __bool__(&self) -> bool {
         true
     }
@@ -311,6 +313,7 @@ impl QueryResponseArrow {
         self.archive_height.is_some()
             || self.next_block != i64::default()
             || self.total_execution_time != i64::default()
+            || self.data.__bool__()
     }
 
     fn __repr__(&self) -> PyResult<String> {
