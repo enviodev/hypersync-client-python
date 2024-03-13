@@ -494,6 +494,11 @@ fn convert_batch_to_pyarrow_table<'py>(
     pyarrow: &'py PyModule,
     batches: Vec<ArrowBatch>,
 ) -> PyResult<PyObject> {
+
+    if batches.is_empty() {
+        return Ok(py.None());
+    }
+
     let schema = batches.first().unwrap().schema.fields.clone();
     let field = Field::new("a", DataType::Struct(schema), true);
 
