@@ -114,6 +114,25 @@ async def test_send_req():
     print(f"send_req time: {format(execution_time, '.9f')}ms")
 
 
+async def test_send_req_arrow():
+    client = hypersync.HypersyncClient()
+    import pyarrow
+    total_time = 0
+    for _ in range(NUM_BENCHMARK_RUNS):
+        start_time = time.time()
+        res = await client.send_req_arrow(QUERY)
+        execution_time = (time.time() - start_time) * 1000
+        assert(type(res.data.blocks) == pyarrow.lib.Table)
+        assert(res.data.blocks._is_initialized())
+        assert(type(res.data.transactions) == pyarrow.lib.Table)
+        assert(res.data.transactions._is_initialized())
+        assert(type(res.data.logs) == pyarrow.lib.Table)
+        assert(res.data.logs._is_initialized())
+        total_time += execution_time
+    avg_time = total_time / NUM_BENCHMARK_RUNS
+    print(f"send_req_arrow time: {format(execution_time, '.9f')}ms")
+
+
 async def test_send_events_req():
     client = hypersync.HypersyncClient()
     total_time = 0
@@ -180,6 +199,7 @@ async def main():
     print("hypersync-client-python")
     print(f"number of runs for each test: {NUM_BENCHMARK_RUNS}")
     await test_send_req()
+    await test_send_req_arrow()
     await test_send_events_req()
     await test_get_height()
     await test_decode_logs()

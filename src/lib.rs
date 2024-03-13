@@ -1,4 +1,5 @@
 use decode::Decoder;
+use pyo3::ffi::Py_uintptr_t;
 use pyo3::{
     exceptions::{PyIOError, PyValueError},
     prelude::*,
@@ -8,6 +9,11 @@ use pyo3_asyncio::tokio::future_into_py;
 use std::{collections::BTreeMap, sync::Arc};
 
 use anyhow::{Context, Result};
+use arrow2::array::StructArray;
+use arrow2::datatypes::{DataType, Field};
+use arrow2::ffi;
+use skar_client::ArrowBatch;
+
 use from_arrow::FromArrow;
 
 mod config;
@@ -115,9 +121,52 @@ impl HypersyncClient {
         })
     }
 
+    /// Send a query request to the source hypersync instance.
+    ///
+    /// Returns a query response which contains block, tx and log data in pyarrow table.
+    pub fn send_req_arrow<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<&'py PyAny> {
+        // initialize an array
+        let inner = Arc::clone(&self.inner);
+
+        future_into_py::<_, QueryResponseArrow>(py, async move {
+            let query = query
+                .try_convert()
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
+            let res = inner
+                .send::<skar_client::ArrowIpc>(&query)
+                .await
+                .map_err(|e| PyIOError::new_err(format!("{:?}", e)))?;
+
+            let blocks = res.data.blocks;
+            let transactions = res.data.transactions;
+            let logs = res.data.logs;
+
+            let (blocks, transactions, logs) = Python::with_gil(|py| {
+                let pyarrow = py.import("pyarrow")?;
+                let blocks = convert_batch_to_pyarrow_table(py, pyarrow, blocks)?;
+                let transactions = convert_batch_to_pyarrow_table(py, pyarrow, transactions)?;
+                let logs = convert_batch_to_pyarrow_table(py, pyarrow, logs)?;
+                Ok::<(PyObject, PyObject, PyObject), PyErr>((blocks, transactions, logs))
+            })?;
+
+            let query_response = compose_pyarrow_response(
+                res.archive_height,
+                res.next_block,
+                res.total_execution_time,
+                blocks,
+                transactions,
+                logs,
+            )
+            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+
+            Ok(query_response)
+        })
+    }
+
     /// Send a event query request to the source hypersync instance.
     ///
-    /// This executes the same query as send_req function on the source side but
+    /// This executes the same query as send_events_req function on the source side but
     /// it groups data for each event(log) so it is easier to process it.
     pub fn send_events_req<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<&'py PyAny> {
         let inner = Arc::clone(&self.inner);
@@ -185,6 +234,32 @@ impl QueryResponseData {
 #[pyclass]
 #[pyo3(get_all)]
 #[derive(Clone, Debug)]
+pub struct QueryArrowResponse {
+    pub blocks: PyObject,
+    pub transactions: PyObject,
+    pub logs: PyObject,
+}
+
+#[pymethods]
+impl QueryArrowResponse {
+    /// TODO: if we want to implement this method we could call _is_initialized method,
+    /// but we will need py reference
+    fn __bool__(&self) -> bool {
+        true
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone, Debug)]
 pub struct QueryResponse {
     /// Current height of the source hypersync instance
     pub archive_height: Option<i64>,
@@ -200,6 +275,40 @@ pub struct QueryResponse {
 
 #[pymethods]
 impl QueryResponse {
+    fn __bool__(&self) -> bool {
+        self.archive_height.is_some()
+            || self.next_block != i64::default()
+            || self.total_execution_time != i64::default()
+            || self.data.__bool__()
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self))
+    }
+}
+
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone, Debug)]
+pub struct QueryResponseArrow {
+    /// Current height of the source hypersync instance
+    pub archive_height: Option<i64>,
+    /// Next block to query for, the responses are paginated so,
+    ///  the caller should continue the query from this block if they
+    ///  didn't get responses up to the to_block they specified in the Query.
+    pub next_block: i64,
+    /// Total time it took the hypersync instance to execute the query.
+    pub total_execution_time: i64,
+    /// Response data in pyarrow format
+    pub data: QueryArrowResponse,
+}
+
+#[pymethods]
+impl QueryResponseArrow {
     fn __bool__(&self) -> bool {
         self.archive_height.is_some()
             || self.next_block != i64::default()
@@ -350,4 +459,65 @@ fn convert_response_to_query_response(res: skar_client::QueryResponse) -> Result
             logs,
         },
     })
+}
+
+/// Construct response and centralize error mapping for calling function.
+fn compose_pyarrow_response(
+    archive_height: Option<u64>,
+    next_block: u64,
+    total_execution_time: u64,
+    blocks: PyObject,
+    transactions: PyObject,
+    logs: PyObject,
+) -> Result<QueryResponseArrow> {
+    Ok(QueryResponseArrow {
+        archive_height: archive_height
+            .map(|h| h.try_into())
+            .transpose()
+            .context("convert height")?,
+        next_block: next_block.try_into().context("convert next_block")?,
+        total_execution_time: total_execution_time
+            .try_into()
+            .context("convert total_execution_time")?,
+        data: QueryArrowResponse {
+            blocks,
+            transactions,
+            logs,
+        },
+    })
+}
+
+/// Uses RecordBatchReader to convert vector of ArrayBatch to reader by c-interface
+/// and then crates table from this reader with method from_batches
+fn convert_batch_to_pyarrow_table<'py>(
+    py: Python<'py>,
+    pyarrow: &'py PyModule,
+    batches: Vec<ArrowBatch>,
+) -> PyResult<PyObject> {
+
+    if batches.is_empty() {
+        return Ok(py.None());
+    }
+
+    let schema = batches.first().unwrap().schema.fields.clone();
+    let field = Field::new("a", DataType::Struct(schema), true);
+
+    let mut data = vec![];
+    for batch in batches {
+        data.push(
+            StructArray::new(field.data_type.clone(), batch.chunk.arrays().to_vec(), None).boxed(),
+        );
+    }
+
+    let iter = Box::new(data.into_iter().map(Ok)) as _;
+    let stream = Box::new(ffi::export_iterator(iter, field));
+    let py_stream = pyarrow.getattr("RecordBatchReader")?.call_method1(
+        "_import_from_c",
+        ((&*stream as *const ffi::ArrowArrayStream) as Py_uintptr_t,),
+    )?;
+    let table = pyarrow
+        .getattr("Table")?
+        .call_method1("from_batches", (py_stream,))?;
+
+    Ok(table.to_object(py))
 }
