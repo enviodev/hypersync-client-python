@@ -25,8 +25,10 @@ async def main():
     # The query to run
     query = hypersync.Query(
         from_block=0,
+        # The logs we want. We will also automatically get transactions and blocks relating to these logs (the query implicitly joins them).
         logs=[
             hypersync.LogSelection(
+                # We want All ERC20 transfers coming to any of our addresses
                 topics=[
                     [
                         "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
@@ -37,6 +39,7 @@ async def main():
                 ],
             ),
             hypersync.LogSelection(
+                # We want All ERC20 transfers going from any of our addresses
                 topics=[
                     [
                         "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
@@ -48,9 +51,11 @@ async def main():
             ),
         ],
         transactions=[
+            # get all transactions coming from and going to any of our addresses.
 			hypersync.TransactionSelection(from_=addresses),
 			hypersync.TransactionSelection(to=addresses),
 		],
+        # Select the fields we are interested in, notice topics are selected as topic0,1,2,3
         field_selection=hypersync.FieldSelection(
 			block=[
 				BlockField.NUMBER,

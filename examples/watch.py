@@ -12,10 +12,12 @@ async def main():
     # The query to run
     query = hypersync.Query(
         from_block=0,
+		# Select all logs from dai contract address
         logs=[hypersync.LogSelection(
 			address=[DAI_ADDRESS],
 			topics=[["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]],
 		)],
+        # Select the fields we want, we get all fields we need for decoding the logs
         field_selection=hypersync.FieldSelection(
 			log=[
 				LogField.DATA,

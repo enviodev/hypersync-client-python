@@ -9,11 +9,14 @@ async def collect_events():
     height = await client.get_height()
 
     query = hypersync.Query(
+        # start from 10k blocks back
         from_block=height-int(1e4),
+        # Select the logs we want
         logs=[LogSelection(
             address=["0xdAC17F958D2ee523a2206206994597C13D831ec7"],
             topics=[["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]],
         )],
+        # Select the fields and tables we want
         field_selection=FieldSelection(
             log=[
                 LogField.TOPIC0,
@@ -33,6 +36,7 @@ async def collect_events():
         path="data",
         hex_output=True,
         column_mapping=ColumnMapping(
+            # map value columns to float so we can do calculations with them
             decoded_log={
                 "value": DataType.FLOAT64,
             },
@@ -40,20 +44,25 @@ async def collect_events():
                 TransactionField.GAS_USED: DataType.FLOAT64,
             },
         ),
+        # give event signature so client can decode logs into decoded_logs.parquet file
         event_signature="Transfer(address indexed from, address indexed to, uint256 value)",
     )
 
     await client.create_parquet_folder(query, config)
 
 def analyze_events():
+    # read raw logs
     logs = polars.read_parquet(
         "data/logs.parquet",
     )
 
+    # read transactions
     transactions = polars.read_parquet(
         "data/transactions.parquet",
     )
     
+    # read decoded logs and join(stack) the rows with raw logs.
+    # then join transactions using the tx hash column from raw logs table.
     data = polars.read_parquet(
         "data/decoded_logs.parquet"
     ).hstack(logs).join(
