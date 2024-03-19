@@ -1,5 +1,6 @@
 import hypersync
 import asyncio
+from hypersync import BlockField, TransactionField, LogField
 
 # the addresses we want to get data for
 addresses = [
@@ -9,78 +10,76 @@ addresses = [
     "0x32448eb389aBe39b20d5782f04a8d71a2b2e7189".lower(),
 ]
 
+
 # Convert address to topic for filtering. Padds the address with zeroes.
 def address_to_topic(address):
     return "0x000000000000000000000000" + address[2:]
 
+
 async def main():
-    # Create hypersync client using the mainnet hypersync endpoint
-    client = hypersync.hypersync_client(
-        "https://eth.hypersync.xyz",
-    )
+    # Create hypersync client using the mainnet hypersync endpoint (default)
+    client = hypersync.HypersyncClient()
 
     address_topic_filter = list(map(address_to_topic, addresses))
 
     # The query to run
-    query = {
-        # start from block 0 and go to the end of the chain (we don't specify a toBlock).
-        "from_block": 0,
-        # The logs we want. We will also automatically get transactions and blocks relating to these logs (the query implicitly joins them).
-        "logs": [
-          {
-            # We want All ERC20 transfers coming to any of our addresses
-            "topics": [
-              ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-              [],
-              address_topic_filter,
-              [],
-            ]
-          },
-          {
-            # We want All ERC20 transfers going from any of our addresses
-            "topics": [
-              ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-              address_topic_filter,
-              [],
-              [],
-            ]
-          }
+    query = hypersync.Query(
+        from_block=0,
+        logs=[
+            hypersync.LogSelection(
+                topics=[
+                    [
+                        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                    ],
+                    [],
+                    address_topic_filter,
+                    [],
+                ],
+            ),
+            hypersync.LogSelection(
+                topics=[
+                    [
+                        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+                    ],
+                    address_topic_filter,
+                    [],
+                    [],
+                ]
+            ),
         ],
-        "transactions": [
-            # get all transactions coming from and going to any of our addresses.
-            { "from": addresses },
-            { "to": addresses }
-        ],
-        # Select the fields we are interested in, notice topics are selected as topic0,1,2,3
-        "field_selection": {
-          "block": [
-            "number",
-            "timestamp",
-            "hash"
-          ],
-          "log": [
-            "block_number",
-            "log_index",
-            "transaction_index",
-            "transaction_hash",
-            "data",
-            "address",
-            "topic0",
-            "topic1",
-            "topic2",
-            "topic3"
-          ],
-          "transaction": [
-            "block_number",
-            "transaction_index",
-            "hash",
-            "from",
-            "to",
-            "value",
-            "input"
-          ]
-        },
-    }
+        transactions=[
+			hypersync.TransactionSelection(from_=addresses),
+			hypersync.TransactionSelection(to=addresses),
+		],
+        field_selection=hypersync.FieldSelection(
+			block=[
+				BlockField.NUMBER,
+				BlockField.TIMESTAMP,
+				BlockField.HASH,
+			],
+			log=[
+				LogField.BLOCK_NUMBER,
+                LogField.LOG_INDEX,
+                LogField.TRANSACTION_INDEX,
+                LogField.TRANSACTION_HASH,
+                LogField.DATA,
+                LogField.ADDRESS,
+                LogField.TOPIC0,
+                LogField.TOPIC1,
+                LogField.TOPIC2,
+                LogField.TOPIC3,
+			],
+            transaction=[
+                TransactionField.BLOCK_NUMBER,
+                TransactionField.TRANSACTION_INDEX,
+                TransactionField.HASH,
+                TransactionField.FROM,
+                TransactionField.TO,
+                TransactionField.VALUE,
+                TransactionField.INPUT,
+            ]
+		)
+    )
 
     print("Running the query...")
 
@@ -92,7 +91,7 @@ async def main():
     print(f"Ran the query once.  Next block to query is {res.next_block}")
 
     # read json abi file for erc20
-    with open('./erc20.abi.json', 'r') as json_file:
+    with open("./erc20.abi.json", "r") as json_file:
         abi = json_file.read()
 
     # Map of contract_address -> abi
@@ -132,11 +131,14 @@ async def main():
         # `from` is reserved in python so hypersync uses `from_`
         total_wei_volume[tx.from_] = total_wei_volume.get(tx.from_, 0)
         total_wei_volume[tx.to] = total_wei_volume.get(tx.to, 0)
-        
+
         total_wei_volume[tx.from_] += int(tx.value, 16)
         total_wei_volume[tx.to] += int(tx.value, 16)
-    
+
     for address in addresses:
-        print(f"total wei transfer volume for address {address} is {total_wei_volume.get(address, 0)}")
+        print(
+            f"total wei transfer volume for address {address} is {total_wei_volume.get(address, 0)}"
+        )
+
 
 asyncio.run(main())

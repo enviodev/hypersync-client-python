@@ -1,43 +1,32 @@
 import hypersync
 import asyncio
 import time
+from hypersync import LogField
 
 DAI_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
 
 async def main():
-    # Create hypersync client using the mainnet hypersync endpoint
-    client = hypersync.hypersync_client(
-        "https://eth.hypersync.xyz",
-    )
+    # Create hypersync client using the mainnet hypersync endpoint (default)
+    client = hypersync.HypersyncClient()
 
     # The query to run
-    query = {
-        # start from block 0 and go to the end of the chain (we don't specify a toBlock).
-        "from_block": 0,
-        "logs": [
-          {
-            "address": [DAI_ADDRESS],
-            # We want the transfers
-            "topics": [
-              ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
-              [],
-              [],
-              [],
-            ]
-          }
-        ],
-        # Select the fields we are interested in, notice topics are selected as topic0,1,2,3
-        "field_selection": {
-          "log": [
-            "data",
-            "address",
-            "topic0",
-            "topic1",
-            "topic2",
-            "topic3"
-          ]
-        },
-    }
+    query = hypersync.Query(
+        from_block=0,
+        logs=[hypersync.LogSelection(
+			address=[DAI_ADDRESS],
+			topics=[["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]],
+		)],
+        field_selection=hypersync.FieldSelection(
+			log=[
+				LogField.DATA,
+				LogField.ADDRESS,
+				LogField.TOPIC0,
+				LogField.TOPIC1,
+				LogField.TOPIC2,
+				LogField.TOPIC3,
+			]
+		)
+    )
 
     # read json abi file for erc20
     with open('./erc20.abi.json', 'r') as json_file:
@@ -70,7 +59,6 @@ async def main():
             time.sleep(1)
             
         # continue query from next_block
-        query['from_block'] = res.next_block
-        
+        query.from_block = res.next_block
 
 asyncio.run(main())
