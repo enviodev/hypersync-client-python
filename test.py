@@ -194,6 +194,16 @@ async def test_decode_events():
     avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"decode_events time: {format(execution_time, '.9f')}ms")
 
+async def test_preset_query_blocks_and_transactions():
+    client = hypersync.HypersyncClient()
+    query = client.preset_query_blocks_and_transactions(17_000_000, 17_000_010)
+    print(type(query))
+    res = await client.send_req(query)
+    assert(len(res.data.blocks) == 10)
+    assert(len(res.data.transactions > 1))
+        
+
+
 
 async def main():
     print("hypersync-client-python")
@@ -205,6 +215,7 @@ async def main():
     await test_decode_logs()
     await test_decode_events()
     await test_create_parquet_folder()
+    await test_preset_query_blocks_and_transactions()
 
 
 asyncio.run(main())

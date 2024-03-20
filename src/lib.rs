@@ -1,4 +1,5 @@
 use decode::Decoder;
+use pyo3::exceptions::PyTypeError;
 use pyo3::ffi::Py_uintptr_t;
 use pyo3::{
     exceptions::{PyIOError, PyValueError},
@@ -204,6 +205,18 @@ impl HypersyncClient {
 
             Ok(res)
         })
+    }
+
+    pub fn preset_query_blocks_and_transactions(
+        &self,
+        from_block: u64,
+        to_block: Option<u64>,
+    ) -> PyResult<Query> {
+        let query: Query =
+            skar_client::Client::preset_query_blocks_and_transactions(from_block, to_block)
+                .try_into()
+                .map_err(|e| PyTypeError::new_err(format!("{:?}", e)))?;
+        Ok(query)
     }
 }
 
@@ -494,7 +507,6 @@ fn convert_batch_to_pyarrow_table<'py>(
     pyarrow: &'py PyModule,
     batches: Vec<ArrowBatch>,
 ) -> PyResult<PyObject> {
-
     if batches.is_empty() {
         return Ok(py.None());
     }

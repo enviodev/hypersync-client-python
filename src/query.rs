@@ -1,7 +1,10 @@
 use anyhow::{Context, Result};
-use serde::Serialize;
+use pyo3::pyclass;
+use serde::{Deserialize, Serialize};
 
-#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct TraceSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "from")]
@@ -19,7 +22,9 @@ pub struct TraceSelection {
     pub sighash: Option<Vec<String>>,
 }
 
-#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct LogSelection {
     /// Address of the contract, any logs that has any of these addresses will be returned.
     /// Empty means match all.
@@ -31,7 +36,9 @@ pub struct LogSelection {
     pub topics: Option<Vec<Vec<String>>>,
 }
 
-#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct TransactionSelection {
     /// Address the transaction should originate from. If transaction.from matches any of these, the transaction
     ///  will be returned. Keep in mind that this has an and relationship with to filter, so each transaction should
@@ -52,7 +59,9 @@ pub struct TransactionSelection {
     pub status: Option<i64>,
 }
 
-#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct FieldSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block: Option<Vec<String>>,
@@ -64,7 +73,9 @@ pub struct FieldSelection {
     pub trace: Option<Vec<String>>,
 }
 
-#[derive(Default, Clone, Serialize, dict_derive::FromPyObject)]
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct Query {
     /// The block to start the query from
     pub from_block: i64,
@@ -118,6 +129,15 @@ pub struct Query {
 impl Query {
     pub fn try_convert(&self) -> Result<skar_net_types::Query> {
         let json = serde_json::to_vec(self).context("serialize to json")?;
+        serde_json::from_slice(&json).context("parse json")
+    }
+}
+
+impl TryFrom<skar_net_types::Query> for Query {
+    type Error = anyhow::Error;
+
+    fn try_from(skar_query: skar_net_types::Query) -> Result<Self> {
+        let json = serde_json::to_vec(&skar_query).context("serialize query to json")?;
         serde_json::from_slice(&json).context("parse json")
     }
 }
