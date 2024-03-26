@@ -193,3 +193,11 @@ class HypersyncClient:
 
     async def send_req_arrow(self, query: Query) -> any:
         return await self.inner.send_req_arrow(asdict(query))
+    
+    def preset_query_blocks_and_transactions(self, from_block: int, to_block: Optional[int]) -> Query:
+        query = self.inner.preset_query_blocks_and_transactions(from_block, to_block)
+        return 
+
+# helper function
+def dict_to_query(data: dict) -> Query:
+    # TODO:

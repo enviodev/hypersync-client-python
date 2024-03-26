@@ -1,10 +1,9 @@
 use anyhow::{Context, Result};
-use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
 
-#[pyclass]
-#[pyo3(get_all)]
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(
+    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
+)]
 pub struct TraceSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "from")]
@@ -22,9 +21,9 @@ pub struct TraceSelection {
     pub sighash: Option<Vec<String>>,
 }
 
-#[pyclass]
-#[pyo3(get_all)]
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(
+    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
+)]
 pub struct LogSelection {
     /// Address of the contract, any logs that has any of these addresses will be returned.
     /// Empty means match all.
@@ -36,9 +35,9 @@ pub struct LogSelection {
     pub topics: Option<Vec<Vec<String>>>,
 }
 
-#[pyclass]
-#[pyo3(get_all)]
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(
+    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
+)]
 pub struct TransactionSelection {
     /// Address the transaction should originate from. If transaction.from matches any of these, the transaction
     ///  will be returned. Keep in mind that this has an and relationship with to filter, so each transaction should
@@ -59,9 +58,9 @@ pub struct TransactionSelection {
     pub status: Option<i64>,
 }
 
-#[pyclass]
-#[pyo3(get_all)]
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(
+    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
+)]
 pub struct FieldSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block: Option<Vec<String>>,
@@ -73,9 +72,9 @@ pub struct FieldSelection {
     pub trace: Option<Vec<String>>,
 }
 
-#[pyclass]
-#[pyo3(get_all)]
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(
+    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
+)]
 pub struct Query {
     /// The block to start the query from
     pub from_block: i64,

@@ -207,16 +207,17 @@ impl HypersyncClient {
         })
     }
 
-    pub fn preset_query_blocks_and_transactions(
-        &self,
+    pub fn preset_query_blocks_and_transactions<'py>(
+        &'py self,
+        py: Python<'py>,
         from_block: u64,
         to_block: Option<u64>,
-    ) -> PyResult<Query> {
+    ) -> PyResult<PyObject> {
         let query: Query =
             skar_client::Client::preset_query_blocks_and_transactions(from_block, to_block)
                 .try_into()
-                .map_err(|e| PyTypeError::new_err(format!("{:?}", e)))?;
-        Ok(query)
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+        Ok(query.into_py(py))
     }
 }
 
