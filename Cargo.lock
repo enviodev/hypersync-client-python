@@ -1318,6 +1318,7 @@ dependencies = [
  "arrow2",
  "dict_derive",
  "env_logger",
+ "hex",
  "itertools 0.12.1",
  "prefix-hex",
  "pyo3",
@@ -2455,9 +2456,9 @@ checksum = "f27f6278552951f1f2b8cf9da965d10969b2efdea95a6ec47987ab46edfe263a"
 
 [[package]]
 name = "skar-client"
-version = "0.16.2"
+version = "0.16.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19a1ec6fa66dd1096877e3ada6a826aa966a798e9ab80a09eebe905c198e21ea"
+checksum = "9d8ae35edf67dd8b3f8c5e4c1f9e594b1c6e8f0b5cbd781cdc5cec1b5a10b47f"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
