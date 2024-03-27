@@ -204,10 +204,15 @@ async def test_preset_query_blocks_and_transactions():
     assert(len(res.data.transactions) > 1)
     print(f"preset_query_blocks_and_transactions time: {format(execution_time, '.9f')}ms")
 
-
-
-        
-
+async def test_preset_query_blocks_and_transaction_hashes():
+    start_time = time.time()
+    client = hypersync.HypersyncClient()
+    query = client.preset_query_blocks_and_transaction_hashes(17_000_000, 17_000_010)
+    res = await client.send_req(query)
+    execution_time = (time.time() - start_time) * 1000
+    assert(len(res.data.blocks) == 10)
+    assert(len(res.data.transactions) > 1)
+    print(f"preset_query_blocks_and_transactions time: {format(execution_time, '.9f')}ms")
 
 
 async def main():
@@ -221,6 +226,7 @@ async def main():
     await test_decode_events()
     await test_create_parquet_folder()
     await test_preset_query_blocks_and_transactions()
+    await test_preset_query_blocks_and_transaction_hashes()
 
 
 asyncio.run(main())

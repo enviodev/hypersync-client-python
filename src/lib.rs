@@ -220,6 +220,22 @@ impl HypersyncClient {
                 .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
         Ok(query.into_py(py))
     }
+
+    /// Returns a query object for all Blocks and hashes of the Transactions within the block range
+    /// (from_block, to_block].  Also returns the block_hash and block_number fields on each Transaction
+    /// so it can be mapped to a block.  If to_block is None then query runs to the head of the chain.
+    pub fn preset_query_blocks_and_transaction_hashes<'py>(
+        &'py self,
+        py: Python<'py>,
+        from_block: u64,
+        to_block: Option<u64>,
+    ) -> PyResult<PyObject> {
+        let query: Query =
+            skar_client::Client::preset_query_blocks_and_transaction_hashes(from_block, to_block)
+                .try_into()
+                .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+        Ok(query.into_py(py))
+    }
 }
 
 #[pyclass]
