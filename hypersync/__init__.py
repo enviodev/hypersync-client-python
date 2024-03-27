@@ -196,8 +196,31 @@ class HypersyncClient:
     
     def preset_query_blocks_and_transactions(self, from_block: int, to_block: Optional[int]) -> Query:
         query = self.inner.preset_query_blocks_and_transactions(from_block, to_block)
-        return 
+        return dict_to_query(query)
 
 # helper function
 def dict_to_query(data: dict) -> Query:
-    # TODO:
+    logs = [LogSelection(**log) for log in data.get('logs', [])] if 'logs' in data else None
+    transactions = [TransactionSelection(**txn) for txn in data.get('transactions', [])] if 'transactions' in data else None
+    traces = [TraceSelection(**trace) for trace in data.get('traces', [])] if 'traces' in data else None
+    
+    field_selection = FieldSelection(
+        block=[BlockField(block) for block in data['field_selection'].get('block', [])] if 'block' in data['field_selection'] else None,
+        transaction=[TransactionField(txn) for txn in data['field_selection'].get('transaction', [])] if 'transaction' in data['field_selection'] else None,
+        log=[LogField(log) for log in data['field_selection'].get('log', [])] if 'log' in data['field_selection'] else None,
+        trace=[TraceField(trace) for trace in data['field_selection'].get('trace', [])] if 'trace' in data['field_selection'] else None,
+    )
+    
+    return Query(
+        from_block=data['from_block'],
+        to_block=data.get('to_block'),
+        logs=logs,
+        transactions=transactions,
+        traces=traces,
+        include_all_blocks=data.get('include_all_blocks'),
+        max_num_blocks=data.get('max_num_blocks'),
+        max_num_transactions=data.get('max_num_transactions'),
+        max_num_logs=data.get('max_num_logs'),
+        max_num_traces=data.get('max_num_traces'),
+        field_selection=field_selection,
+    )

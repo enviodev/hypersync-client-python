@@ -1,5 +1,4 @@
 use decode::Decoder;
-use pyo3::exceptions::PyTypeError;
 use pyo3::ffi::Py_uintptr_t;
 use pyo3::{
     exceptions::{PyIOError, PyValueError},
@@ -207,6 +206,7 @@ impl HypersyncClient {
         })
     }
 
+    // TODO: comments
     pub fn preset_query_blocks_and_transactions<'py>(
         &'py self,
         py: Python<'py>,
