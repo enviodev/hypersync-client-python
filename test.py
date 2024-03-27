@@ -214,7 +214,6 @@ async def test_preset_query_blocks_and_transaction_hashes():
     assert(len(res.data.transactions) > 1)
     print(f"preset_query_blocks_and_transaction_hashes time: {format(execution_time, '.9f')}ms")
 
-
 async def test_preset_query_logs():
     start_time = time.time()
     client = hypersync.HypersyncClient()
@@ -224,6 +223,17 @@ async def test_preset_query_logs():
     execution_time = (time.time() - start_time) * 1000
     assert(len(res.data.logs) > 1)
     print(f"preset_query_logs time: {format(execution_time, '.9f')}ms")
+
+async def test_preset_query_logs_of_event():
+    start_time = time.time()
+    client = hypersync.HypersyncClient()
+    contract_address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+    topic0 = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    query = client.preset_query_logs_of_event(contract_address, topic0, 17_000_000, 17_000_010)
+    res = await client.send_req(query)
+    execution_time = (time.time() - start_time) * 1000
+    assert(len(res.data.logs) > 1)
+    print(f"preset_query_logs_of_event time: {format(execution_time, '.9f')}ms")
 
 
 async def main():
@@ -238,6 +248,7 @@ async def main():
     await test_create_parquet_folder()
     await test_preset_query_blocks_and_transactions()
     await test_preset_query_logs()
+    await test_preset_query_logs_of_event()
 
 
 asyncio.run(main())
