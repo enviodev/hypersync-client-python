@@ -206,7 +206,8 @@ impl HypersyncClient {
         })
     }
 
-    // TODO: comments
+    /// Returns a query for all Blocks and Transactions within the block range (from_block, to_block]
+    /// If to_block is None then query runs to the head of the chain.
     pub fn preset_query_blocks_and_transactions<'py>(
         &'py self,
         py: Python<'py>,

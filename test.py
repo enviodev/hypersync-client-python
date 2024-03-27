@@ -195,11 +195,17 @@ async def test_decode_events():
     print(f"decode_events time: {format(execution_time, '.9f')}ms")
 
 async def test_preset_query_blocks_and_transactions():
+    start_time = time.time()
     client = hypersync.HypersyncClient()
     query = client.preset_query_blocks_and_transactions(17_000_000, 17_000_010)
     res = await client.send_req(query)
+    execution_time = (time.time() - start_time) * 1000
     assert(len(res.data.blocks) == 10)
     assert(len(res.data.transactions) > 1)
+    print(f"preset_query_blocks_and_transactions time: {format(execution_time, '.9f')}ms")
+
+
+
         
 
 
