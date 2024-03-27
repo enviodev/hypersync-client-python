@@ -247,6 +247,7 @@ async def main():
     await test_decode_events()
     await test_create_parquet_folder()
     await test_preset_query_blocks_and_transactions()
+    await test_preset_query_blocks_and_transaction_hashes()
     await test_preset_query_logs()
     await test_preset_query_logs_of_event()
 

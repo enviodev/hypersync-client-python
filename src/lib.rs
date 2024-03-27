@@ -261,6 +261,9 @@ impl HypersyncClient {
         Ok(query.into_py(py))
     }
 
+    /// Returns a query for all Logs within the block range from the given address with a
+    /// matching topic0 event signature.  Topic0 is the keccak256 hash of the event signature.
+    /// If to_block is None then query runs to the head of the chain.
     pub fn preset_query_logs_of_event<'py>(
         &'py self,
         py: Python<'py>,
