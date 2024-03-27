@@ -201,6 +201,10 @@ class HypersyncClient:
     def preset_query_blocks_and_transaction_hashes(self, from_block: int, to_block: Optional[int]) -> Query:
         query = self.inner.preset_query_blocks_and_transaction_hashes(from_block, to_block)
         return dict_to_query(query)
+    
+    def preset_query_logs(self, contract_address: str, from_block: int, to_block: Optional[int]) -> Query:
+        query = self.inner.preset_query_logs(contract_address, from_block, to_block)
+        return dict_to_query(query)
 
 # helper function for converting a Query object from the rust side interpreted as a dict into a 
 # dataclass Query

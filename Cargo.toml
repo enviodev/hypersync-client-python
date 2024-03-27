@@ -31,3 +31,4 @@ arrow2 = { version = "0.18" }
 prefix-hex = "0.7.1"
 env_logger = "0.11"
 itertools = "0.12.1"
+hex = "0.4.3"

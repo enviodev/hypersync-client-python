@@ -1318,6 +1318,7 @@ dependencies = [
  "arrow2",
  "dict_derive",
  "env_logger",
+ "hex",
  "itertools 0.12.1",
  "prefix-hex",
  "pyo3",

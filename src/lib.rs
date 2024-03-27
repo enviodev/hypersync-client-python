@@ -236,6 +236,47 @@ impl HypersyncClient {
                 .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
         Ok(query.into_py(py))
     }
+
+    /// Returns a query object for all Logs within the block range from the given address.
+    /// If to_block is None then query runs to the head of the chain.
+    pub fn preset_query_logs<'py>(
+        &'py self,
+        py: Python<'py>,
+        contract_address: &str,
+        from_block: u64,
+        to_block: Option<u64>,
+    ) -> PyResult<PyObject> {
+        // cut the "0x" off the address
+        let address: &str = if &contract_address[..2] == "0x" {
+            &contract_address[2..]
+        } else {
+            contract_address
+        };
+        let address = hex_str_to_byte_array(address)
+            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+        let query: Query = skar_client::Client::preset_query_logs(from_block, to_block, address)
+            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?
+            .try_into()
+            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
+        Ok(query.into_py(py))
+    }
+}
+
+// helper function to decode hex string as address
+fn hex_str_to_byte_array(hex_str: &str) -> Result<[u8; 20], String> {
+    if hex_str.len() != 40 {
+        return Err("Hex string must be exactly 40 characters long after 0x.".into());
+    }
+
+    match hex::decode(hex_str) {
+        Ok(bytes) if bytes.len() == 20 => {
+            let mut array = [0u8; 20];
+            array.copy_from_slice(&bytes);
+            Ok(array)
+        }
+        Ok(_) => Err("Decoded hex does not fit into a 20-byte array.".into()),
+        Err(e) => Err(format!("Failed to decode hex string: {}", e)),
+    }
 }
 
 #[pyclass]
