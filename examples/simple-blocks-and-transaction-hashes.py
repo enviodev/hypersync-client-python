@@ -1,13 +1,13 @@
 import hypersync
 import asyncio
 
-# returns all block and transaction objects within a block range
+# returns all blocks and the hashes of the transactions (not entire transaction objects) within a block range
 
 async def main():
     # Create hypersync client using the mainnet hypersync endpoint (default)
     client = hypersync.HypersyncClient()
 
-    query = client.preset_query_blocks_and_transactions(17_000_000, 17_000_050)
+    query = client.preset_query_blocks_and_transaction_hashes(17_000_000, 17_000_050)
 
     print("Running the query...")
 
@@ -16,7 +16,7 @@ async def main():
     # res.next_block is equal to res.archive_height or query.to_block in case we specified an end block.
     res = await client.send_req(query)
 
-    print(f"Query returned {len(res.data.blocks)} blocks and {len(res.data.transactions)} transactions")
+    print(f"Query returned {len(res.data.blocks)} blocks and {len(res.data.transactions)} transaction hashes")
 
 
 
