@@ -301,26 +301,26 @@ impl HypersyncClient {
 
 // helper function to decode hex string as address
 fn hex_str_address_to_byte_array(hex_str: &str) -> Result<[u8; 20], String> {
-    match hex::decode(hex_str) {
-        Ok(bytes) if bytes.len() == 20 => {
-            let mut array = [0u8; 20];
-            array.copy_from_slice(&bytes);
-            Ok(array)
-        }
-        Ok(_) => Err("Decoded hex does not fit into a 20-byte array.".into()),
+    if hex_str.len() != 40 {
+        return Err(format!("address must be 40 hex characters"));
+    }
+
+    let mut dst = [0u8; 20];
+    match faster_hex::hex_decode(hex_str.as_bytes(), &mut dst) {
+        Ok(()) => Ok(dst),
         Err(e) => Err(format!("Failed to decode hex string: {}", e)),
     }
 }
 
 // helper function to decode hex string as topic0
 fn hex_str_topic0_to_byte_array(hex_str: &str) -> Result<[u8; 32], String> {
-    match hex::decode(hex_str) {
-        Ok(bytes) if bytes.len() == 32 => {
-            let mut array = [0u8; 32];
-            array.copy_from_slice(&bytes);
-            Ok(array)
-        }
-        Ok(_) => Err("Decoded hex does not fit into a 32-byte array.".into()),
+    if hex_str.len() != 64 {
+        return Err(format!("topic0 must be 64 hex characters"));
+    }
+
+    let mut dst = [0u8; 32];
+    match faster_hex::hex_decode(hex_str.as_bytes(), &mut dst) {
+        Ok(()) => Ok(dst),
         Err(e) => Err(format!("Failed to decode hex string: {}", e)),
     }
 }
