@@ -31,7 +31,7 @@ jobs:
           sccache: 'true'
           manylinux: 'manylinux2014'
           container: 'off'
-          before-script-linux: yum install -y capnproto capnproto-devel
+          before-script-linux: apt-get install -y capnproto libcapnp-dev
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
