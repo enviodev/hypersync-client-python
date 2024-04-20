@@ -29,7 +29,7 @@ jobs:
           target: x86_64
           args: --release --out dist --find-interpreter
           sccache: 'true'
-          manylinux: 'manylinux2014'
+          manylinux: 'manylinux_2_29
           container: 'off'
           before-script-linux: sudo apt-get install -y capnproto libcapnp-dev
       - name: Upload wheels
