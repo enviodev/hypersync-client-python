@@ -30,6 +30,7 @@ jobs:
           args: --skip-auditwheel --release --out dist --find-interpreter
           sccache: 'true'
           container: 'off'
+          manylinux: 'manylinux2014'
           before-script-linux: sudo apt-get install -y capnproto libcapnp-dev
       - name: Upload wheels
         uses: actions/upload-artifact@v3
