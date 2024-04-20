@@ -1296,7 +1296,6 @@ dependencies = [
  "skar-format",
  "skar-net-types",
  "tokio",
- "zstd-sys",
 ]
 
 [[package]]
