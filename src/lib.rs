@@ -9,9 +9,9 @@ use pyo3_asyncio::tokio::future_into_py;
 use std::{collections::BTreeMap, sync::Arc};
 
 use anyhow::{Context, Result};
-use arrow2::array::StructArray;
-use arrow2::datatypes::{DataType, Field};
-use arrow2::ffi;
+use polars_arrow::array::StructArray;
+use polars_arrow::datatypes::{ArrowDataType as DataType, Field};
+use polars_arrow::ffi;
 use skar_client::ArrowBatch;
 
 use from_arrow::FromArrow;
@@ -302,7 +302,7 @@ impl HypersyncClient {
 // helper function to decode hex string as address
 fn hex_str_address_to_byte_array(hex_str: &str) -> Result<[u8; 20], String> {
     if hex_str.len() != 40 {
-        return Err(format!("address must be 40 hex characters"));
+        return Err("address must be 40 hex characters".to_owned());
     }
 
     let mut dst = [0u8; 20];
@@ -315,7 +315,7 @@ fn hex_str_address_to_byte_array(hex_str: &str) -> Result<[u8; 20], String> {
 // helper function to decode hex string as topic0
 fn hex_str_topic0_to_byte_array(hex_str: &str) -> Result<[u8; 32], String> {
     if hex_str.len() != 64 {
-        return Err(format!("topic0 must be 64 hex characters"));
+        return Err("topic0 must be 64 hex characters".to_owned());
     }
 
     let mut dst = [0u8; 32];

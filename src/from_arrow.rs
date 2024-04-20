@@ -1,5 +1,5 @@
 use anyhow::Result;
-use arrow2::array::{BinaryArray, BooleanArray, UInt64Array, UInt8Array};
+use polars_arrow::array::{BinaryArray, BooleanArray, UInt64Array, UInt8Array};
 use skar_client::ArrowBatch;
 
 use crate::types::{Block, Log, Transaction};

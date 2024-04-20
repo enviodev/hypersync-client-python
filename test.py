@@ -101,7 +101,6 @@ async def test_create_parquet_folder():
     avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"create_parquet_folder time: {format(execution_time, '.9f')}ms")
 
-
 async def test_send_req():
     client = hypersync.HypersyncClient()
     total_time = 0

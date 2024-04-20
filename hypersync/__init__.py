@@ -48,6 +48,15 @@ class BlockField(StrEnum):
     TIMESTAMP = 'timestamp'
     UNCLES = 'uncles'
     BASE_FEE_PER_GAS = 'base_fee_per_gas'
+    BLOB_GAS_USED = 'blob_gas_used'
+    EXCESS_BLOB_GAS = 'excess_blob_gas'
+    PARENT_BEACON_BLOCK_ROOT = 'parent_beacon_block_root'
+    WITHDRAWALS_ROOT = 'withdrawals_root'
+    WITHDRAWALS = 'withdrawals'
+    L1_BLOCK_NUMBER = 'l1_block_number'
+    SEND_COUNT = 'send_count'
+    SEND_ROOT = 'send_root'
+    MIX_HASH = 'mix_hash'
 
 class TransactionField(StrEnum):
     BLOCK_HASH = 'block_hash'
@@ -76,6 +85,15 @@ class TransactionField(StrEnum):
     ROOT = 'root'
     STATUS = 'status'
     SIGHASH = 'sighash'
+    TX_Y_PARITY = 'tx_y_parity'
+    TX_ACCESS_LIST = 'tx_access_list'
+    TX_L1_FEE = 'tx_l1_fee'
+    TX_L1_GAS_PRICE = 'tx_l1_gas_price'
+    TX_L1_GAS_USED = 'tx_l1_gas_used'
+    TX_L1_FEE_SCALAR = 'tx_l1_fee_scalar'
+    TX_GAS_USED_FOR_L1 = 'tx_gas_used_for_l1'
+    MAX_FEE_PER_BLOB_GAS = 'max_fee_per_blob_gas'
+    BLOB_VERSIONED_HASHES = 'blob_versioned_hashes'
 
 class LogField(StrEnum):
     REMOVED = 'removed'
