@@ -19,3 +19,4 @@ dynamic = ["version"]
 [tool.maturin]
 features = ["pyo3/extension-module"]
 profile = "no_lto"
+compatibility = "manylinux2014"
