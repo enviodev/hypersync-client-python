@@ -27,9 +27,8 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: x86_64
-          args: --release --out dist --find-interpreter
+          args: --skip-auditwheel --release --out dist --find-interpreter
           sccache: 'true'
-          args: '--skip-auditwheel'
           container: 'off'
           before-script-linux: sudo apt-get install -y capnproto libcapnp-dev
       - name: Upload wheels
