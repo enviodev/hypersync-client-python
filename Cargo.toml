@@ -1,6 +1,6 @@
 [package]
 name = "hypersync"
-version = "0.6.1"
+version = "0.6.2"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -18,16 +18,16 @@ dict_derive = "0.5.0"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 
-alloy-json-abi = "0.6"
-alloy-dyn-abi = "0.6"
-alloy-primitives = "0.6"
+alloy-json-abi = "0.7"
+alloy-dyn-abi = "0.7"
+alloy-primitives = "0.7"
 
 skar-client = "0.18"
 skar-net-types = "0.3"
 skar-format = "0.3"
 
 anyhow = "1"
-polars-arrow = { version = "0.38" }
+polars-arrow = { version = "0.39" }
 prefix-hex = "0.7.1"
 env_logger = "0.11"
 itertools = "0.12.1"
