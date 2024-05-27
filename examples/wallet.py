@@ -18,7 +18,7 @@ def address_to_topic(address):
 
 async def main():
     # Create hypersync client using the mainnet hypersync endpoint (default)
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
 
     address_topic_filter = list(map(address_to_topic, addresses))
 
@@ -88,27 +88,13 @@ async def main():
 
     print("Running the query...")
 
-    # Run the query once, the query is automatically paginated so it will return when it reaches some limit (time, response size etc.)
-    # there is a next_block field on the response object so we can set the from_block of our query to this value and continue our query until
-    # res.next_block is equal to res.archive_height or query.to_block in case we specified an end block.
-    res = await client.send_req(query)
+    res = await client.collect(query, hypersync.StreamConfig())
 
     print(f"Ran the query once.  Next block to query is {res.next_block}")
 
-    # read json abi file for erc20
-    with open("./erc20.abi.json", "r") as json_file:
-        abi = json_file.read()
-
-    # Map of contract_address -> abi
-    abis = {}
-
-    # every log we get should be decodable by this abi but we don't know
-    # the specific contract addresses since we are indexing all erc20 transfers.
-    for log in res.data.logs:
-        abis[log.address] = abi
-
-    # Create a decoder with out mapping
-    decoder = hypersync.Decoder(abis)
+    decoder = hypersync.Decoder([
+        "Transfer(address indexed from, address indexed to, uint256 value)"
+    ])
 
     # Decode the log on a background thread so we don't block the event loop.
     # Can also use decoder.decode_logs_sync if it is more convenient.
@@ -118,14 +104,18 @@ async def main():
     total_erc20_volume = {}
 
     for log in decoded_logs:
+        #skip invalid logs
+        if log is None:
+            continue
+
         # Check if the keys exist in the dictionary, if not, initialize them with 0
-        total_erc20_volume[log.indexed[0]] = total_erc20_volume.get(log.indexed[0], 0)
-        total_erc20_volume[log.indexed[1]] = total_erc20_volume.get(log.indexed[1], 0)
+        total_erc20_volume[log.indexed[0].val] = total_erc20_volume.get(log.indexed[0].val, 0)
+        total_erc20_volume[log.indexed[1].val] = total_erc20_volume.get(log.indexed[1].val, 0)
 
         # We count for both sides but we will filter by our addresses later
         # so we will ignore unnecessary addresses.
-        total_erc20_volume[log.indexed[0]] += log.body[0]
-        total_erc20_volume[log.indexed[1]] += log.body[0]
+        total_erc20_volume[log.indexed[0].val] += log.body[0].val
+        total_erc20_volume[log.indexed[1].val] += log.body[0].val
 
     for address in addresses:
         erc20_volume = total_erc20_volume.get(address, 0)

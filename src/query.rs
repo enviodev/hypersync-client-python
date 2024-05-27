@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use hypersync_client::net_types;
 use serde::{Deserialize, Serialize};
 
 #[derive(
@@ -16,7 +17,7 @@ pub struct TraceSelection {
     pub reward_type: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "type")]
-    pub type_: Option<Vec<String>>,
+    pub kind: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sighash: Option<Vec<String>>,
 }
@@ -25,12 +26,8 @@ pub struct TraceSelection {
     Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
 )]
 pub struct LogSelection {
-    /// Address of the contract, any logs that has any of these addresses will be returned.
-    /// Empty means match all.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub address: Option<Vec<String>>,
-    /// Topics to match, each member of the top level array is another array, if the nth topic matches any
-    ///  topic specified in topics[n] the log will be returned. Empty means match all.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub topics: Option<Vec<Vec<String>>>,
 }
@@ -39,23 +36,20 @@ pub struct LogSelection {
     Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
 )]
 pub struct TransactionSelection {
-    /// Address the transaction should originate from. If transaction.from matches any of these, the transaction
-    ///  will be returned. Keep in mind that this has an and relationship with to filter, so each transaction should
-    ///  match both of them. Empty means match all.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "from")]
     pub from_: Option<Vec<String>>,
-    /// Address the transaction should go to. If transaction.to matches any of these, the transaction will
-    ///  be returned. Keep in mind that this has an and relationship with from filter, so each transaction should
-    ///  match both of them. Empty means match all.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub to: Option<Vec<String>>,
-    /// If first 4 bytes of transaction input matches any of these, transaction will be returned. Empty means match all.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sighash: Option<Vec<String>>,
-    /// If tx.status matches this it will be returned.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<i64>,
+    pub status: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "type")]
+    pub kind: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contract_address: Option<Vec<String>>,
 }
 
 #[derive(
@@ -77,7 +71,7 @@ pub struct FieldSelection {
 )]
 pub struct Query {
     /// The block to start the query from
-    pub from_block: i64,
+    pub from_block: u64,
     /// The block to end the query at. If not specified, the query will go until the
     ///  end of data. Exclusive, the returned range will be [from_block..to_block).
     ///
@@ -86,7 +80,7 @@ pub struct Query {
     ///  next_block field in the response into from_block field of their next query. This implements
     ///  pagination.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub to_block: Option<i64>,
+    pub to_block: Option<u64>,
     /// List of log selections, these have an or relationship between them, so the query will return logs
     /// that match any of these selections.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -110,32 +104,32 @@ pub struct Query {
     /// Maximum number of blocks that should be returned, the server might return more blocks than this number but
     ///  it won't overshoot by too much.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_num_blocks: Option<i64>,
+    pub max_num_blocks: Option<u64>,
     /// Maximum number of transactions that should be returned, the server might return more transactions than this number but
     ///  it won't overshoot by too much.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_num_transactions: Option<i64>,
+    pub max_num_transactions: Option<u64>,
     /// Maximum number of logs that should be returned, the server might return more logs than this number but
     ///  it won't overshoot by too much.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_num_logs: Option<i64>,
+    pub max_num_logs: Option<u64>,
     /// Maximum number of traces that should be returned, the server might return more traces than this number but
     ///  it won't overshoot by too much.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_num_traces: Option<i64>,
+    pub max_num_traces: Option<u64>,
 }
 
 impl Query {
-    pub fn try_convert(&self) -> Result<skar_net_types::Query> {
+    pub fn try_convert(&self) -> Result<net_types::Query> {
         let json = serde_json::to_vec(self).context("serialize to json")?;
         serde_json::from_slice(&json).context("parse json")
     }
 }
 
-impl TryFrom<skar_net_types::Query> for Query {
+impl TryFrom<net_types::Query> for Query {
     type Error = anyhow::Error;
 
-    fn try_from(skar_query: skar_net_types::Query) -> Result<Self> {
+    fn try_from(skar_query: net_types::Query) -> Result<Self> {
         let json = serde_json::to_vec(&skar_query).context("serialize query to json")?;
         serde_json::from_slice(&json).context("parse json")
     }

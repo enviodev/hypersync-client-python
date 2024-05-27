@@ -1,131 +1,121 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
-use alloy_json_abi::JsonAbi;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
+use hypersync_client::format::{Data, Hex, LogArgument};
 use pyo3::{exceptions::PyValueError, pyclass, pymethods, PyAny, PyResult, Python};
-
 use pyo3_asyncio::tokio::future_into_py;
-use skar_format::{Address, Hex, LogArgument};
 
-use crate::types::{to_py, DecodedEvent, Event, Log};
+use crate::types::{DecodedEvent, DecodedSolValue, Event, Log};
 
 #[pyclass]
 #[derive(Clone)]
 pub struct Decoder {
-    inner: Arc<skar_client::Decoder>,
+    inner: Arc<hypersync_client::Decoder>,
+    checksummed_addresses: bool,
 }
 
 #[pymethods]
 impl Decoder {
     #[new]
-    // Hash map of address -> Json
-    pub fn new(json_abis: HashMap<String, String>) -> PyResult<Self> {
-        let json_abis = json_abis
-            .into_iter()
-            .map(|(addr, json)| {
-                let abi: JsonAbi = serde_json::from_str(&json).context("parse json abi")?;
-                let addr = Address::decode_hex(&addr).context("decode hex address")?;
-                Ok((addr, abi))
-            })
-            .collect::<Result<Vec<_>>>()
-            .context("parse json abi list")
-            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
-
-        let inner = skar_client::Decoder::new(&json_abis)
+    pub fn from_signatures(signatures: Vec<String>) -> PyResult<Self> {
+        let inner = hypersync_client::Decoder::from_signatures(&signatures)
             .context("build inner decoder")
             .map_err(|e| PyValueError::new_err(format!("{:?}", e)))?;
 
         Ok(Self {
             inner: Arc::new(inner),
+            checksummed_addresses: false,
         })
     }
 
-    // returns python awaitable for PyResult<Vec<Option<DecodedEvent>>>
-    pub fn decode_logs<'py>(&'py self, logs: Vec<Log>, py: Python<'py>) -> PyResult<&'py PyAny> {
-        let decoder = self.clone();
-
-        future_into_py::<_, Vec<Option<DecodedEvent>>>(
-            py,
-            async move { decoder.decode_logs_sync(logs) },
-        )
+    pub fn enable_checksummed_addresses(&mut self) {
+        self.checksummed_addresses = true;
     }
 
-    // returns Result<Vec<Option<DecodedEvent>>>
-    pub fn decode_logs_sync(&self, logs: Vec<Log>) -> PyResult<Vec<Option<DecodedEvent>>> {
+    pub fn disable_checksummed_addresses(&mut self) {
+        self.checksummed_addresses = false;
+    }
+
+    pub fn decode_logs<'py>(&self, logs: Vec<Log>, py: Python<'py>) -> PyResult<&'py PyAny> {
+        let decoder = self.clone();
+
+        future_into_py(py, async move {
+            Ok(tokio::task::spawn_blocking(move || {
+                Python::with_gil(|py| decoder.decode_logs_sync(logs, py))
+            })
+            .await
+            .unwrap())
+        })
+    }
+
+    pub fn decode_logs_sync(&self, logs: Vec<Log>, py: Python) -> Vec<Option<DecodedEvent>> {
         logs.iter()
-            .map(|log| self.decode_impl(log))
-            .collect::<Result<Vec<_>>>()
-            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))
+            .flat_map(|log| self.decode_impl(log, py).ok())
+            .collect::<Vec<_>>()
     }
 
-    // returns python awaitable for PyResult<Vec<Option<DecodedEvent>>>
-    pub fn decode_events<'py>(
-        &'py self,
-        events: Vec<Event>,
-        py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    pub fn decode_events<'py>(&self, events: Vec<Event>, py: Python<'py>) -> PyResult<&'py PyAny> {
         let decoder = self.clone();
 
-        future_into_py::<_, Vec<Option<DecodedEvent>>>(py, async move {
-            decoder.decode_events_sync(events)
+        future_into_py(py, async move {
+            Ok(tokio::task::spawn_blocking(move || {
+                Python::with_gil(|py| decoder.decode_events_sync(events, py))
+            })
+            .await
+            .unwrap())
         })
     }
 
-    // returns Result<Vec<Option<DecodedEvent>>>
-    pub fn decode_events_sync(&self, events: Vec<Event>) -> PyResult<Vec<Option<DecodedEvent>>> {
+    pub fn decode_events_sync(&self, events: Vec<Event>, py: Python) -> Vec<Option<DecodedEvent>> {
         events
             .iter()
-            .map(|event| self.decode_impl(&event.log))
-            .collect::<Result<Vec<_>>>()
-            .map_err(|e| PyValueError::new_err(format!("{:?}", e)))
+            .flat_map(|event| self.decode_impl(&event.log, py).ok())
+            .collect::<Vec<_>>()
     }
 }
 
 impl Decoder {
-    // returns Result<Option<DecodedEvent>>
-    fn decode_impl(&self, log: &Log) -> Result<Option<DecodedEvent>> {
-        let address = log.address.as_ref().context("get address")?;
-        let address = Address::decode_hex(address).context("decode address")?;
-
-        let mut topics = Vec::new();
-
-        for topic in log.topics.iter() {
-            match topic {
-                Some(topic) => {
-                    let topic = LogArgument::decode_hex(topic).context("decode topic")?;
-                    topics.push(Some(topic));
-                }
-                None => topics.push(None),
-            }
-        }
-
-        let topics = topics
+    fn decode_impl(&self, log: &Log, py: Python) -> Result<Option<DecodedEvent>> {
+        let topics = log
+            .topics
             .iter()
-            .map(|t| t.as_ref().map(|t| t.as_slice()))
-            .collect::<Vec<Option<&[u8]>>>();
+            .map(|v| {
+                v.as_ref()
+                    .map(|v| LogArgument::decode_hex(v).context("decode topic"))
+                    .transpose()
+            })
+            .collect::<Result<Vec<_>>>()
+            .context("decode topics")?;
 
         let topic0 = topics
             .first()
             .context("get topic0")?
-            .context("get topic0")?;
+            .as_ref()
+            .context("topic0 is null")?;
 
-        let data = log.data.as_ref().context("get data field")?;
-        let data: Vec<u8> =
-            prefix_hex::decode(data).map_err(|e| anyhow!("decode data field: {}", e))?;
+        let data = log.data.as_ref().context("get log.data")?;
+        let data = Data::decode_hex(data).context("decode data")?;
 
         let decoded = match self
             .inner
-            .decode(address.as_slice(), topic0, &topics, &data)
+            .decode(topic0.as_slice(), &topics, &data)
             .context("decode log")?
         {
-            Some(decoded) => decoded,
+            Some(v) => v,
             None => return Ok(None),
         };
 
         Ok(Some(DecodedEvent {
-            indexed: decoded.indexed.into_iter().map(to_py).collect(),
-            body: decoded.body.into_iter().map(to_py).collect(),
+            indexed: decoded
+                .indexed
+                .into_iter()
+                .map(|v| DecodedSolValue::new(py, v, self.checksummed_addresses))
+                .collect(),
+            body: decoded
+                .body
+                .into_iter()
+                .map(|v| DecodedSolValue::new(py, v, self.checksummed_addresses))
+                .collect(),
         }))
     }
 }

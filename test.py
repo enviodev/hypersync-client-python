@@ -1,7 +1,7 @@
 import hypersync
 import asyncio
 import time
-from hypersync import DataType, BlockField, TransactionField, LogField, TraceField
+from hypersync import DataType, BlockField, TransactionField, LogField, TraceField, HexOutput
 
 # for benchmarking times.  Will run the function this many times and take the
 # average
@@ -71,16 +71,14 @@ QUERY = hypersync.Query(
 )
 
 async def test_create_parquet_folder():
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
 
-        await client.create_parquet_folder(
-            QUERY, hypersync.ParquetConfig(
-                path="data",
-                retry=True,
-                hex_output=True,
+        await client.collect_parquet(
+            "data", QUERY, hypersync.StreamConfig(
+                hex_output=HexOutput.PREFIXED,
                 column_mapping=hypersync.ColumnMapping(
                     trace={
                         TraceField.TRANSACTION_POSITION: DataType.INT32,
@@ -98,28 +96,25 @@ async def test_create_parquet_folder():
         )
         execution_time = (time.time() - start_time) * 1000
         total_time += execution_time
-    avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"create_parquet_folder time: {format(execution_time, '.9f')}ms")
 
 async def test_send_req():
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
-        res = await client.send_req(QUERY)
+        await client.get(QUERY)
         execution_time = (time.time() - start_time) * 1000
         total_time += execution_time
-    avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"send_req time: {format(execution_time, '.9f')}ms")
 
-
 async def test_send_req_arrow():
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
     import pyarrow
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
-        res = await client.send_req_arrow(QUERY)
+        res = await client.get_arrow(QUERY)
         execution_time = (time.time() - start_time) * 1000
         assert(type(res.data.blocks) == pyarrow.lib.Table)
         assert(res.data.blocks._is_initialized())
@@ -128,76 +123,63 @@ async def test_send_req_arrow():
         assert(type(res.data.logs) == pyarrow.lib.Table)
         assert(res.data.logs._is_initialized())
         total_time += execution_time
-    avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"send_req_arrow time: {format(execution_time, '.9f')}ms")
 
 
 async def test_send_events_req():
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
-        res = await client.send_events_req(QUERY)
+        await client.get_events(QUERY)
         execution_time = (time.time() - start_time) * 1000
         total_time += execution_time
-    avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"send_events_req time: {format(execution_time, '.9f')}ms")
 
-
 async def test_get_height():
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
-        height = await client.get_height()
+        await client.get_height()
         execution_time = (time.time() - start_time) * 1000
         total_time += execution_time
-    avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"get_height time: {format(execution_time, '.9f')}ms")
 
 
 async def test_decode_logs():
-    client = hypersync.HypersyncClient()
-    res = await client.send_req(QUERY)
-    with open("./erc20.abi.json", "r") as json_file:
-        json = json_file.read()
-    abis = {}
-    for log in res.data.logs:
-        abis[log.address] = json
-    decoder = hypersync.Decoder(json_abis=abis)
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    res = await client.get(QUERY)
+    decoder = hypersync.Decoder([
+        "Transfer(address indexed from, address indexed to, uint256 value)"
+    ])
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
-        decoded_logs = decoder.decode_logs_sync(res.data.logs)
+        decoder.decode_logs_sync(res.data.logs)
         execution_time = (time.time() - start_time) * 1000
         total_time += execution_time
-    avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"decode_logs time: {format(execution_time, '.9f')}ms")
 
-
 async def test_decode_events():
-    client = hypersync.HypersyncClient()
-    res = await client.send_events_req(QUERY)
-    with open("./erc20.abi.json", "r") as json_file:
-        json = json_file.read()
-    abis = {}
-    for event in res.events:
-        abis[event.log.address] = json
-    decoder = hypersync.Decoder(abis)
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    res = await client.get_events(QUERY)
+    decoder = hypersync.Decoder([
+        "Transfer(address indexed from, address indexed to, uint256 value)"
+    ])
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
-        decoded_events = decoder.decode_events_sync(res.events)
+        decoder.decode_events_sync(res.data)
         execution_time = (time.time() - start_time) * 1000
         total_time += execution_time
-    avg_time = total_time / NUM_BENCHMARK_RUNS
     print(f"decode_events time: {format(execution_time, '.9f')}ms")
 
 async def test_preset_query_blocks_and_transactions():
     start_time = time.time()
-    client = hypersync.HypersyncClient()
-    query = client.preset_query_blocks_and_transactions(17_000_000, 17_000_010)
-    res = await client.send_req(query)
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    query = hypersync.preset_query_blocks_and_transactions(17_000_000, 17_000_010)
+    res = await client.get(query)
     execution_time = (time.time() - start_time) * 1000
     assert(len(res.data.blocks) == 10)
     assert(len(res.data.transactions) > 1)
@@ -205,9 +187,9 @@ async def test_preset_query_blocks_and_transactions():
 
 async def test_preset_query_blocks_and_transaction_hashes():
     start_time = time.time()
-    client = hypersync.HypersyncClient()
-    query = client.preset_query_blocks_and_transaction_hashes(17_000_000, 17_000_010)
-    res = await client.send_req(query)
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    query = hypersync.preset_query_blocks_and_transaction_hashes(17_000_000, 17_000_010)
+    res = await client.get(query)
     execution_time = (time.time() - start_time) * 1000
     assert(len(res.data.blocks) == 10)
     assert(len(res.data.transactions) > 1)
@@ -215,21 +197,21 @@ async def test_preset_query_blocks_and_transaction_hashes():
 
 async def test_preset_query_logs():
     start_time = time.time()
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
     contract_address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-    query = client.preset_query_logs(contract_address, 17_000_000, 17_000_010)
-    res = await client.send_req(query)
+    query = hypersync.preset_query_logs(contract_address, 17_000_000, 17_000_010)
+    res = await client.get(query)
     execution_time = (time.time() - start_time) * 1000
     assert(len(res.data.logs) > 1)
     print(f"preset_query_logs time: {format(execution_time, '.9f')}ms")
 
 async def test_preset_query_logs_of_event():
     start_time = time.time()
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
     contract_address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
     topic0 = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-    query = client.preset_query_logs_of_event(contract_address, topic0, 17_000_000, 17_000_010)
-    res = await client.send_req(query)
+    query = hypersync.preset_query_logs_of_event(contract_address, topic0, 17_000_000, 17_000_010)
+    res = await client.get(query)
     execution_time = (time.time() - start_time) * 1000
     assert(len(res.data.logs) > 1)
     print(f"preset_query_logs_of_event time: {format(execution_time, '.9f')}ms")
