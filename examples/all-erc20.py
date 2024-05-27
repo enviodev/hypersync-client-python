@@ -1,10 +1,10 @@
 import hypersync
 import asyncio
-from hypersync import BlockField, TransactionField, LogField
+from hypersync import BlockField, TransactionField, LogField, ClientConfig
 
 async def main():
     # Create hypersync client using the arbitrum hypersync endpoint
-    client = hypersync.HypersyncClient("https://arbitrum.hypersync.xyz")
+    client = hypersync.HypersyncClient(ClientConfig())
 
     # The query to run
     query = hypersync.Query(
@@ -38,7 +38,7 @@ async def main():
                 TransactionField.VALUE,
                 TransactionField.INPUT,
 			]
-		)
+		),
     )
 
     print("Running the query...")
@@ -46,24 +46,13 @@ async def main():
     # Run the query once, the query is automatically paginated so it will return when it reaches some limit (time, response size etc.)
     # there is a next_block field on the response object so we can set the from_block of our query to this value and continue our query until
     # res.next_block is equal to res.archive_height or query.to_block in case we specified an end block.
-    res = await client.send_req(query)
+    res = await client.get(query)
 
     print(f"Ran the query once.  Next block to query is {res.next_block}")
 
-    # read json abi file for erc20
-    with open('./erc20.abi.json', 'r') as json_file:
-        abi = json_file.read()
-
-    # Map of contract_address -> abi
-    abis = {}
-
-    # every log we get should be decodable by this abi but we don't know
-    # the specific contract addresses since we are indexing all erc20 transfers.
-    for log in res.data.logs:
-        abis[log.address] = abi
-
-    # Create a decoder with our mapping
-    decoder = hypersync.Decoder(abis)
+    decoder = hypersync.Decoder([
+        "Transfer(address indexed from, address indexed to, uint256 value)"
+    ])
 
     # Decode the log on a background thread so we don't block the event loop.
     # Can also use decoder.decode_logs_sync if it is more convenient.
@@ -72,7 +61,11 @@ async def main():
     # Let's count total volume, it is meaningless because of currency differences but good as an example.
     total_volume = 0
     for log in decoded_logs:
-        total_volume += log.body[0]
+        #skip invalid logs
+        if log is None:
+            continue
+
+        total_volume += log.body[0].val
     
     total_blocks = res.next_block - query.from_block
 

@@ -4,7 +4,7 @@ import asyncio
 import polars
 
 async def collect_events():
-    client = hypersync.HypersyncClient()
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
 
     height = await client.get_height()
 
@@ -32,9 +32,8 @@ async def collect_events():
         ),
     )
 
-    config = hypersync.ParquetConfig(
-        path="data",
-        hex_output=True,
+    config = hypersync.StreamConfig(
+        hex_output=hypersync.HexOutput.PREFIXED,
         column_mapping=ColumnMapping(
             # map value columns to float so we can do calculations with them
             decoded_log={
@@ -48,7 +47,7 @@ async def collect_events():
         event_signature="Transfer(address indexed from, address indexed to, uint256 value)",
     )
 
-    await client.create_parquet_folder(query, config)
+    await client.collect_parquet("data", query, config)
 
 def analyze_events():
     # read raw logs
