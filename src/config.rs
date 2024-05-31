@@ -16,6 +16,10 @@ pub struct StreamConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub batch_size: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_batch_size: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_batch_size: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub concurrency: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_num_blocks: Option<i64>,
@@ -25,6 +29,10 @@ pub struct StreamConfig {
     pub max_num_logs: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_num_traces: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_bytes_ceiling: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_bytes_floor: Option<i64>,
 }
 
 #[derive(

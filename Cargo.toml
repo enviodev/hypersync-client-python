@@ -17,7 +17,7 @@ serde = { version = "1", features = ["derive"] }
 alloy-json-abi = "0.7"
 alloy-dyn-abi = "0.7"
 alloy-primitives = "0.7"
-hypersync-client = "0.6"
+hypersync-client = "0.7"
 anyhow = "1"
 polars-arrow = { version = "0.39" }
 prefix-hex = "0.7"
