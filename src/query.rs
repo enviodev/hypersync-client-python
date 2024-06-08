@@ -12,6 +12,8 @@ pub struct TraceSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub to: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub address: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub call_type: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reward_type: Option<Vec<String>>,

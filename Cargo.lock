@@ -74,7 +74,7 @@ dependencies = [
  "itoa",
  "serde",
  "serde_json",
- "winnow 0.6.11",
+ "winnow 0.6.13",
 ]
 
 [[package]]
@@ -174,7 +174,7 @@ version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81fd4783b0a5840479013e9ce960d2eb7b3be381f722e0fe3d1f7c3bb6bd4ebd"
 dependencies = [
- "winnow 0.6.11",
+ "winnow 0.6.13",
 ]
 
 [[package]]
@@ -221,9 +221,9 @@ dependencies = [
 
 [[package]]
 name = "anstyle-query"
-version = "1.0.3"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a64c907d4e79225ac72e2a354c9ce84d50ebb4586dee56c82b3ee73004f537f5"
+checksum = "ad186efb764318d35165f1758e7dcef3b10628e26d41a44bc5550652e6804391"
 dependencies = [
  "windows-sys 0.52.0",
 ]
@@ -617,9 +617,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.98"
+version = "1.0.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41c270e7540d725e65ac7f1b212ac8ce349719624d7bcff99f8e2e488e8cf03f"
+checksum = "96c51067fd44124faa7f870b4b1c969379ad32b2ba805aa959430ceaa384f695"
 dependencies = [
  "jobserver",
  "libc",
@@ -1301,7 +1301,7 @@ dependencies = [
 
 [[package]]
 name = "hypersync"
-version = "0.7.2"
+version = "0.7.3"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
@@ -1323,9 +1323,9 @@ dependencies = [
 
 [[package]]
 name = "hypersync-client"
-version = "0.7.1"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4c7225b203b8d1d387fd177021dc1685e9cc37e4fc2797e50d6ef584fa02454"
+checksum = "8917282cc045d34ac0ac29e9c9f7226c032472079e2663319a0646b2f45552b3"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
@@ -1358,9 +1358,9 @@ dependencies = [
 
 [[package]]
 name = "hypersync-format"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6adfb41a077e57a9f90b351479cdb3cf6baff41cb58662a781eaee755dd4176"
+checksum = "2dbebbc15f644df7a95f335fbb10a48e5bccd3bd619bb609c23c9309984f3d4c"
 dependencies = [
  "alloy-primitives",
  "arrayvec",
@@ -1372,9 +1372,9 @@ dependencies = [
 
 [[package]]
 name = "hypersync-net-types"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb637eda1279334f02f330d4d32bcd243f51d6463b8dd12e23c4e489926c9dcb"
+checksum = "9daf7908393117fec38fde210a80e7e78908ed5e4e8117599cbaa7fd51c380c2"
 dependencies = [
  "arrayvec",
  "capnp",
@@ -1385,9 +1385,9 @@ dependencies = [
 
 [[package]]
 name = "hypersync-schema"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d6f4349ba69d61a80349f5aa16844abd2accdaa6002ec78f14e77f052988b6f"
+checksum = "109b34e664ddc91e0b2895842054a88a8154f190e02e54338f0e44c8e4851299"
 dependencies = [
  "anyhow",
  "polars-arrow",
@@ -3108,9 +3108,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-roots"
-version = "0.26.1"
+version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3de34ae270483955a94f4b21bdaaeb83d508bb84a01435f393818edb0012009"
+checksum = "3c452ad30530b54a4d8e71952716a212b08efd0f3562baa66c29a618b07da7c3"
 dependencies = [
  "rustls-pki-types",
 ]
@@ -3287,9 +3287,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "0.6.11"
+version = "0.6.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56c52728401e1dc672a56e81e593e912aa54c78f40246869f78359a2bf24d29d"
+checksum = "59b5e5f6c299a3c7890b876a2a587f3115162487e704907d9b6cd29473052ba1"
 dependencies = [
  "memchr",
 ]

@@ -326,6 +326,7 @@ class TransactionSelection:
 class TraceSelection:
     from_: Optional[list[str]] = None
     to: Optional[list[str]] = None
+    address: Optional[list[str]] = None
     call_type: Optional[list[str]] = None
     reward_type: Optional[list[str]] = None
     kind: Optional[list[str]] = None
