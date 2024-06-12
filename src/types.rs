@@ -1,9 +1,11 @@
+use std::str::FromStr;
+
 use alloy_dyn_abi::DynSolValue;
-use alloy_primitives::Signed;
+use alloy_primitives::{Signed, U256};
 use anyhow::{Context, Result};
 use hypersync_client::{format, format::Hex, net_types, simple_types};
-use pyo3::{ffi, pyclass, IntoPy, PyObject, Python};
-use ruint::Uint;
+use num_bigint::{BigInt, BigUint};
+use pyo3::{pyclass, IntoPy, PyObject, Python};
 use serde::{Deserialize, Serialize};
 
 /// Data relating to a single event (log)
@@ -214,23 +216,8 @@ impl DecodedSolValue {
     pub fn new(py: Python, val: DynSolValue, checksummed_addresses: bool) -> Self {
         let val = match val {
             DynSolValue::Bool(b) => b.into_py(py),
-            DynSolValue::Int(v, _) => {
-                let bytes: [u8; Signed::<256, 4>::BYTES] = v.to_le_bytes();
-                let ptr: *const u8 = bytes.as_ptr();
-                unsafe {
-                    let obj = ffi::_PyLong_FromByteArray(ptr, Signed::<256, 4>::BYTES, 1, 1);
-                    PyObject::from_owned_ptr(py, obj)
-                }
-            }
-            DynSolValue::Uint(v, _) => {
-                //v.into_py(py)
-                let bytes: [u8; Uint::<256, 4>::BYTES] = v.to_le_bytes();
-                let ptr: *const u8 = bytes.as_ptr();
-                unsafe {
-                    let obj = ffi::_PyLong_FromByteArray(ptr, Uint::<256, 4>::BYTES, 1, 0);
-                    PyObject::from_owned_ptr(py, obj)
-                }
-            }
+            DynSolValue::Int(v, _) => convert_bigint_signed(v).into_py(py),
+            DynSolValue::Uint(v, _) => convert_bigint_unsigned(v).into_py(py),
             DynSolValue::FixedBytes(bytes, _) => encode_prefix_hex(bytes.as_slice()).into_py(py),
             DynSolValue::Address(addr) => {
                 if !checksummed_addresses {
@@ -456,5 +443,44 @@ impl RollbackGuard {
                 .context("convert first_block_number")?,
             first_parent_hash: arg.first_parent_hash.encode_hex(),
         })
+    }
+}
+
+fn convert_bigint_signed(v: Signed<256, 4>) -> BigInt {
+    BigInt::from_str(&v.to_string()).unwrap()
+}
+
+fn convert_bigint_unsigned(v: U256) -> BigUint {
+    BigUint::from_str(&v.to_string()).unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bigint_convert_signed() {
+        for i in (i128::from(i64::MIN)..i128::from(u64::MAX))
+            .step_by(usize::try_from(u64::MAX / 31).unwrap())
+            .take(1024)
+        {
+            let v = Signed::<256, 4>::try_from(i).unwrap();
+            let out = convert_bigint_signed(v);
+
+            assert_eq!(i128::try_from(v).unwrap(), i128::try_from(out).unwrap());
+        }
+    }
+
+    #[test]
+    fn test_bigint_convert_unsigned() {
+        for i in (u128::from(u64::MIN)..u128::MAX)
+            .step_by(usize::try_from(u64::MAX / 31).unwrap())
+            .take(1024)
+        {
+            let v = U256::from(i);
+            let out = convert_bigint_unsigned(v);
+
+            assert_eq!(u128::try_from(v).unwrap(), u128::try_from(out).unwrap());
+        }
     }
 }

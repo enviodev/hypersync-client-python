@@ -1,6 +1,6 @@
 [package]
 name = "hypersync"
-version = "0.7.4"
+version = "0.7.5"
 edition = "2021"
 
 [lib]
@@ -8,7 +8,7 @@ name = "hypersync"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.20", features = ["extension-module", "anyhow"] }
+pyo3 = { version = "0.20", features = ["extension-module", "anyhow", "num-bigint"] }
 pyo3-asyncio = { version = "0.20", features = ["tokio-runtime"] }
 tokio = "1"
 dict_derive = "0.5"
@@ -24,3 +24,4 @@ prefix-hex = "0.7"
 env_logger = "0.11"
 faster-hex = "0.9"
 ruint = "1"
+num-bigint = "0.4"
