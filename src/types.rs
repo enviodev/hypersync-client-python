@@ -78,7 +78,7 @@ pub struct Transaction {
     pub l1_fee: Option<String>,
     pub l1_gas_price: Option<String>,
     pub l1_gas_used: Option<String>,
-    pub l1_fee_scalar: Option<String>,
+    pub l1_fee_scalar: Option<f64>,
     pub gas_used_for_l1: Option<String>,
 }
 
@@ -349,7 +349,7 @@ impl From<&simple_types::Transaction> for Transaction {
             l1_fee: map_binary(&t.l1_fee),
             l1_gas_price: map_binary(&t.l1_gas_price),
             l1_gas_used: map_binary(&t.l1_gas_used),
-            l1_fee_scalar: map_binary(&t.l1_fee_scalar),
+            l1_fee_scalar: t.l1_fee_scalar,
             gas_used_for_l1: map_binary(&t.gas_used_for_l1),
         }
     }
