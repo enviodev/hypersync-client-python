@@ -339,6 +339,11 @@ class FieldSelection:
     log: Optional[list[LogField]] = None
     trace: Optional[list[TraceField]] = None
 
+class JoinMode(StrEnum):
+    DEFAULT = 'Default'
+    JOIN_ALL = 'JoinAll'
+    JOIN_NOTHING = 'JoinNothing'
+
 @dataclass
 class Query:
     # The block to start the query from
@@ -378,6 +383,13 @@ class Query:
     # Maximum number of traces that should be returned, the server might return more traces than this number but
     # it won't overshoot by too much.
     max_num_traces: Optional[int] = None
+    # Selects join mode for the query,
+    # Default: join in this order logs -> transactions -> traces -> blocks
+    # JoinAll: join everything to everything. For example if logSelection matches log0, we get the
+    # associated transaction of log0 and then we get associated logs of that transaction as well. Applites similarly
+    # to blocks, traces.
+    # JoinNothing: join nothing.
+    join_mode: Optional[JoinMode] = None
 
 @dataclass
 class ColumnMapping:
