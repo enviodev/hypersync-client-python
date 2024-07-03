@@ -116,11 +116,11 @@ async def test_send_req_arrow():
         start_time = time.time()
         res = await client.get_arrow(QUERY)
         execution_time = (time.time() - start_time) * 1000
-        assert(type(res.data.blocks) == pyarrow.lib.Table)
+        assert(type(res.data.blocks) is pyarrow.lib.Table)
         assert(res.data.blocks._is_initialized())
-        assert(type(res.data.transactions) == pyarrow.lib.Table)
+        assert(type(res.data.transactions) is pyarrow.lib.Table)
         assert(res.data.transactions._is_initialized())
-        assert(type(res.data.logs) == pyarrow.lib.Table)
+        assert(type(res.data.logs) is pyarrow.lib.Table)
         assert(res.data.logs._is_initialized())
         total_time += execution_time
     print(f"send_req_arrow time: {format(execution_time, '.9f')}ms")

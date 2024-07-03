@@ -3,7 +3,7 @@ import asyncio
 from hypersync import BlockField, JoinMode, TransactionField, LogField, ClientConfig
 
 async def main():
-    client = hypersync.HypersyncClient(ClientConfig(url="http://167.235.0.227:2104"))
+    client = hypersync.HypersyncClient(ClientConfig())
 
     # The query to run
     query = hypersync.Query(
