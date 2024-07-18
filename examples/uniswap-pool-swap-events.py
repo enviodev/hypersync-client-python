@@ -14,7 +14,7 @@ async def main():
     # Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)
     event_topic_0 = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"
 
-    start_block = 19_690_239 
+    start_block = 0 
     end_block = 20_333_826
 
     query = hypersync.preset_query_logs_of_event(eth_rai_swap_pool, event_topic_0, start_block, end_block)
