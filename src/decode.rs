@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use hypersync_client::format::{Data, Hex, LogArgument};
-use pyo3::{exceptions::PyValueError, pyclass, pymethods, PyAny, PyResult, Python};
+use pyo3::{exceptions::PyValueError, pyclass, pyfunction, pymethods, PyAny, PyResult, Python};
 use pyo3_asyncio::tokio::future_into_py;
 
 use crate::types::{DecodedEvent, DecodedSolValue, Event, Log};
@@ -118,4 +118,11 @@ impl Decoder {
                 .collect(),
         }))
     }
+}
+
+#[pyfunction]
+pub fn signature_to_topic0(sig: &str) -> Result<String> {
+    let event = alloy_json_abi::Event::parse(sig.as_ref()).context("parse event signature")?;
+    let topic0 = hypersync_client::format::Hash::try_from(event.selector().as_slice()).unwrap();
+    Ok(topic0.encode_hex())
 }

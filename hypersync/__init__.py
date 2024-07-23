@@ -1,8 +1,12 @@
 from .hypersync import HypersyncClient as _HypersyncClient
 from .hypersync import Decoder as _Decoder
+from .hypersync import signature_to_topic0 as _sig_to_topic0
 from typing import Optional, Dict
 from dataclasses import dataclass, asdict
 from strenum import StrEnum
+
+def signature_to_topic0(sig: str) -> str:
+    return _sig_to_topic0(sig)
 
 class Decoder:
     """Decode logs parsing topics and log data."""

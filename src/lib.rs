@@ -22,7 +22,10 @@ use query::Query;
 #[pymodule]
 fn hypersync(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<HypersyncClient>()?;
-    m.add_class::<Decoder>()
+    m.add_class::<Decoder>()?;
+    m.add_function(wrap_pyfunction!(decode::signature_to_topic0, m)?)?;
+
+    Ok(())
 }
 
 #[pyclass]
