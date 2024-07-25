@@ -1302,7 +1302,7 @@ dependencies = [
 
 [[package]]
 name = "hypersync"
-version = "0.7.13"
+version = "0.7.14"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
@@ -1325,9 +1325,9 @@ dependencies = [
 
 [[package]]
 name = "hypersync-client"
-version = "0.12.5"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32c98cd600bedacec8639f33e536d3dd17c05cbefd78eff6d14112217a788a85"
+checksum = "f7616f2073858037fcfc1d90468142a68edb29e5f8d4249952160a8dad898cd9"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
@@ -1375,9 +1375,9 @@ dependencies = [
 
 [[package]]
 name = "hypersync-net-types"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b4b2a37d43ba2299a61e160de136fa9094c0cdd2a3a5e1031160f3e47f4969f"
+checksum = "955df483be462bb686f1be71c6a989f7390482f6df2d08e1c5bf35baa5f70202"
 dependencies = [
  "arrayvec",
  "capnp",
@@ -1681,9 +1681,9 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.36.1"
+version = "0.36.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "081b846d1d56ddfc18fdf1a922e4f6e07a11768ea1b92dec44e42b72712ccfce"
+checksum = "3f203fa8daa7bb185f760ae12bd8e097f63d17041dcdcaf675ac54cdf863170e"
 dependencies = [
  "memchr",
 ]

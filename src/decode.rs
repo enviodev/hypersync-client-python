@@ -122,7 +122,7 @@ impl Decoder {
 
 #[pyfunction]
 pub fn signature_to_topic0(sig: &str) -> Result<String> {
-    let event = alloy_json_abi::Event::parse(sig.as_ref()).context("parse event signature")?;
+    let event = alloy_json_abi::Event::parse(sig).context("parse event signature")?;
     let topic0 = hypersync_client::format::Hash::try_from(event.selector().as_slice()).unwrap();
     Ok(topic0.encode_hex())
 }
