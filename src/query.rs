@@ -66,6 +66,8 @@ pub struct TransactionSelection {
     pub kind: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contract_address: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hash: Option<Vec<String>>,
 }
 
 #[derive(

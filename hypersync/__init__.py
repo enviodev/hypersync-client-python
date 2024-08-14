@@ -351,6 +351,9 @@ class TransactionSelection:
     kind: Optional[list[str]] = None
     # If transaction.contract_address matches any of these values, the transaction will be returned.
     contract_address: Optional[list[str]] = None
+    # If transaction.hash matches any of these values the transaction will be returned.
+    # empty means match all.
+    hash: Optional[list[str]] = None
 
 
 @dataclass
