@@ -10,6 +10,7 @@ use std::sync::Arc;
 mod arrow_ffi;
 mod config;
 mod decode;
+mod decode_call;
 mod query;
 mod response;
 mod types;
