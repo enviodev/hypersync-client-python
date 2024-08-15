@@ -1327,6 +1327,8 @@ dependencies = [
 [[package]]
 name = "hypersync-client"
 version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd62ba6d76fab191f3cd29912d3d787d4d7129bc0520624eb534d6c5c424b383"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
@@ -1360,21 +1362,23 @@ dependencies = [
 [[package]]
 name = "hypersync-format"
 version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4d22cabf8a00452f1f0e9b9208dda46341fbad83df1a1d6af6caea5a95a2e29"
 dependencies = [
  "alloy-primitives",
  "arrayvec",
  "derive_more",
  "faster-hex",
- "nohash-hasher",
  "sbbf-rs-safe",
  "serde",
  "thiserror",
- "xxhash-rust",
 ]
 
 [[package]]
 name = "hypersync-net-types"
 version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "955df483be462bb686f1be71c6a989f7390482f6df2d08e1c5bf35baa5f70202"
 dependencies = [
  "arrayvec",
  "capnp",
@@ -1386,6 +1390,8 @@ dependencies = [
 [[package]]
 name = "hypersync-schema"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "109b34e664ddc91e0b2895842054a88a8154f190e02e54338f0e44c8e4851299"
 dependencies = [
  "anyhow",
  "polars-arrow",
