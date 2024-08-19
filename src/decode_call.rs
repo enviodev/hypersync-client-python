@@ -8,13 +8,13 @@ use crate::types::DecodedSolValue;
 
 #[pyclass]
 #[derive(Clone)]
-pub struct Decoder {
+pub struct CallDecoder {
     inner: Arc<hypersync_client::CallDecoder>,
     checksummed_addresses: bool,
 }
 
 #[pymethods]
-impl Decoder {
+impl CallDecoder {
     #[new]
     pub fn from_signatures(signatures: Vec<String>) -> PyResult<Self> {
         let inner = hypersync_client::CallDecoder::from_signatures(&signatures)
