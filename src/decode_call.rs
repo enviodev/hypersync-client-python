@@ -1,15 +1,16 @@
-use anyhow::{Context};
+use anyhow::Context;
 use hypersync_client::format::{Data, Hex};
 use pyo3::{exceptions::PyValueError, pyclass, pymethods, PyAny, PyResult, Python};
 use pyo3_asyncio::tokio::future_into_py;
 use std::sync::Arc;
 
-use crate::types::{DecodedSolValue};
+use crate::types::DecodedSolValue;
 
 #[pyclass]
 #[derive(Clone)]
 pub struct Decoder {
     inner: Arc<hypersync_client::CallDecoder>,
+    checksummed_addresses: bool,
 }
 
 #[pymethods]
@@ -22,7 +23,16 @@ impl Decoder {
 
         Ok(Self {
             inner: Arc::new(inner),
+            checksummed_addresses: false,
         })
+    }
+
+    pub fn enable_checksummed_addresses(&mut self) {
+        self.checksummed_addresses = true;
+    }
+
+    pub fn disable_checksummed_addresses(&mut self) {
+        self.checksummed_addresses = false;
     }
 
     pub fn decode_input<'py>(&self, input: String, py: Python<'py>) -> PyResult<&'py PyAny> {
@@ -37,12 +47,17 @@ impl Decoder {
         })
     }
 
-    pub fn decode_input_sync<'py>(&self, input: &str, py: Python<'py>) -> Option<Vec<DecodedSolValue>> {
+    pub fn decode_input_sync(&self, input: &str, py: Python) -> Option<Vec<DecodedSolValue>> {
         let input = Data::decode_hex(input).context("decode input").unwrap();
 
-        match self.inner.decode_input(&input).context("decode log").unwrap() {
-            Some(v) => Some(v.into_iter().map(|value| DecodedSolValue::new(py, value, false)).collect()),
-            None => None,
-        }
+        self.inner
+            .decode_input(&input)
+            .context("decode log")
+            .unwrap()
+            .map(|v| {
+                v.into_iter()
+                    .map(|value| DecodedSolValue::new(py, value, self.checksummed_addresses))
+                    .collect()
+            })
     }
 }
