@@ -1326,9 +1326,9 @@ dependencies = [
 
 [[package]]
 name = "hypersync-client"
-version = "0.14.1"
+version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd62ba6d76fab191f3cd29912d3d787d4d7129bc0520624eb534d6c5c424b383"
+checksum = "3e148be16e75ba9be263fa3c03eb04e7a46a71d6299e2498fbf3032f43dae184"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",

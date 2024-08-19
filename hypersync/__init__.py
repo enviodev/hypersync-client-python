@@ -1,5 +1,6 @@
 from .hypersync import HypersyncClient as _HypersyncClient
 from .hypersync import Decoder as _Decoder
+from .hypersync import CallDecoder as _CallDecoder
 from .hypersync import signature_to_topic0 as _sig_to_topic0
 from typing import Optional, Dict
 from dataclasses import dataclass, asdict
@@ -36,6 +37,28 @@ class Decoder:
 
     def decode_events_sync(self, events: any) -> any:
         return self.inner.decode_events_sync(events)
+
+
+class CallDecoder:
+    """Decode logs parsing topics and log data."""
+
+    def __init__(self, signatures: list[str]):
+        """Initialize decoder from event signatures."""
+        self.inner = _CallDecoder(signatures)
+
+    def enable_checksummed_addresses(self):
+        self.inner.enable_checksummed_addresses()
+
+    def disable_checksummed_addresses(self):
+        self.inner.disable_checksummed_addresses()
+
+    async def decode_input(self, input: str) -> any:
+        """Parse log and return decoded event. Returns None if topic0 not found."""
+        return await self.inner.decode_input(input)
+
+    def decode_input_sync(self, input: str) -> any:
+        """Parse log and return decoded event. Returns None if topic0 not found."""
+        return self.inner.decode_input_sync(input)
 
 
 class DataType(StrEnum):
