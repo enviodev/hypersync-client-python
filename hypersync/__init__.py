@@ -2,6 +2,9 @@ from .hypersync import HypersyncClient as _HypersyncClient
 from .hypersync import Decoder as _Decoder
 from .hypersync import CallDecoder as _CallDecoder
 from .hypersync import signature_to_topic0 as _sig_to_topic0
+from .hypersync import ArrowStream as _ArrowStream
+from .hypersync import EventStream as _EventStream
+from .hypersync import QueryResponseStream as _QueryResponseStream
 from typing import Optional, Dict
 from dataclasses import dataclass, asdict
 from strenum import StrEnum
@@ -9,6 +12,140 @@ from strenum import StrEnum
 
 def signature_to_topic0(sig: str) -> str:
     return _sig_to_topic0(sig)
+
+
+class Log(object):
+    removed: Optional[bool]
+    log_index: Optional[int]
+    transaction_index: Optional[int]
+    transaction_hash: Optional[str]
+    block_hash: Optional[str]
+    block_number: Optional[int]
+    address: Optional[str]
+    data: Optional[str]
+    topics: Optional[str]
+
+
+class AccessList(object):
+    address: Optional[str]
+    storage_keys: Optional[list[str]]
+
+
+class Transaction(object):
+    block_hash: Optional[str]
+    block_number: Optional[int]
+    from_: Optional[str]
+    gas: Optional[str]
+    gas_price: Optional[str]
+    hash: Optional[str]
+    input: Optional[str]
+    nonce: Optional[str]
+    to: Optional[str]
+    transaction_index: Optional[int]
+    value: Optional[str]
+    v: Optional[str]
+    r: Optional[str]
+    s: Optional[str]
+    y_parity: Optional[str]
+    max_priority_fee_per_gas: Optional[str]
+    max_fee_per_gas: Optional[str]
+    chain_id: Optional[int]
+    access_list: Optional[list[AccessList]]
+    max_fee_per_blob_gas: Optional[str]
+    blob_versioned_hashes: Optional[list[str]]
+    cumulative_gas_used: Optional[str]
+    effective_gas_price: Optional[str]
+    gas_used: Optional[str]
+    contract_address: Optional[str]
+    logs_bloom: Optional[str]
+    kind: Optional[int]
+    root: Optional[str]
+    status: Optional[int]
+    l1_fee: Optional[str]
+    l1_gas_price: Optional[str]
+    l1_gas_used: Optional[str]
+    l1_fee_scalar: Optional[float]
+    gas_used_for_l1: Optional[str]
+
+
+class Withdrawal(object):
+    index: Optional[str]
+    validator_index: Optional[str]
+    address: Optional[str]
+    amount: Optional[str]
+
+
+class Block(object):
+    number: Optional[int]
+    hash: Optional[str]
+    parent_hash: Optional[str]
+    nonce: Optional[str]
+    sha3_uncles: Optional[str]
+    logs_bloom: Optional[str]
+    transactions_root: Optional[str]
+    state_root: Optional[str]
+    receipts_root: Optional[str]
+    miner: Optional[str]
+    difficulty: Optional[str]
+    total_difficulty: Optional[str]
+    extra_data: Optional[str]
+    size: Optional[str]
+    gas_limit: Optional[str]
+    gas_used: Optional[str]
+    timestamp: Optional[str]
+    uncles: Optional[list[str]]
+    base_fee_per_gas: Optional[str]
+    blob_gas_used: Optional[str]
+    excess_blob_gas: Optional[str]
+    parent_beacon_block_root: Optional[str]
+    withdrawals_root: Optional[str]
+    withdrawals: Optional[list[Withdrawal]]
+    l1_block_number: Optional[int]
+    send_count: Optional[str]
+    send_root: Optional[str]
+    mix_hash: Optional[str]
+
+
+class Trace(object):
+    from_: Optional[str]
+    to: Optional[str]
+    call_type: Optional[str]
+    gas: Optional[str]
+    input: Optional[str]
+    init: Optional[str]
+    value: Optional[str]
+    author: Optional[str]
+    reward_type: Optional[str]
+    block_hash: Optional[str]
+    block_number: Optional[int]
+    address: Optional[str]
+    code: Optional[str]
+    gas_used: Optional[str]
+    output: Optional[str]
+    subtraces: Optional[int]
+    trace_address: Optional[list[int]]
+    transaction_hash: Optional[str]
+    transaction_position: Optional[int]
+    kind: Optional[str]
+    error: Optional[str]
+
+
+class Event(object):
+    # Transaction that triggered this event
+    transaction: Optional[Transaction]
+    # Block that this event happened in
+    block: Optional[Block]
+    # Evm log data
+    log: Log
+
+
+class DecodedSolValue(object):
+    val: any
+
+
+class DecodedEvent(object):
+    indexed: list[DecodedSolValue]
+    body: list[DecodedSolValue]
 
 
 class Decoder:
@@ -24,18 +161,18 @@ class Decoder:
     def disable_checksummed_addresses(self):
         self.inner.disable_checksummed_addresses()
 
-    async def decode_logs(self, logs: any) -> any:
+    async def decode_logs(self, logs: list[Log]) -> list[Optional[DecodedEvent]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return await self.inner.decode_logs(logs)
 
-    def decode_logs_sync(self, logs: any) -> any:
+    def decode_logs_sync(self, logs: list[Log]) -> list[Optional[DecodedEvent]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return self.inner.decode_logs_sync(logs)
 
-    async def decode_events(self, events: any) -> any:
+    async def decode_events(self, events: list[Event]) -> list[Optional[DecodedEvent]]:
         return await self.inner.decode_events(events)
 
-    def decode_events_sync(self, events: any) -> any:
+    def decode_events_sync(self, events: list[Event]) -> list[Optional[DecodedEvent]]:
         return self.inner.decode_events_sync(events)
 
 
@@ -52,11 +189,11 @@ class CallDecoder:
     def disable_checksummed_addresses(self):
         self.inner.disable_checksummed_addresses()
 
-    async def decode_input(self, input: str) -> any:
+    async def decode_input(self, input: str) -> list[DecodedSolValue]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return await self.inner.decode_input(input)
 
-    def decode_input_sync(self, input: str) -> any:
+    def decode_input_sync(self, input: str) -> list[DecodedSolValue]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return self.inner.decode_input_sync(input)
 
@@ -515,6 +652,124 @@ class ClientConfig:
     retry_ceiling_ms: Optional[int] = None
 
 
+class QueryResponseData(object):
+    blocks: list[Block]
+    transactions: list[Transaction]
+    logs: list[Log]
+    traces: list[Trace]
+
+
+class RollbackGuard(object):
+    # Block number of the last scanned block
+    block_number: int
+    # Block timestamp of the last scanned block
+    timestamp: int
+    # Block hash of the last scanned block
+    hash: str
+    # Block number of the first scanned block in memory.
+    #
+    # This might not be the first scanned block. It only includes blocks that are in memory (possible to be rolled back).
+    first_block_number: int
+    # Parent hash of the first scanned block in memory.
+    #
+    # This might not be the first scanned block. It only includes blocks that are in memory (possible to be rolled back).
+    first_parent_hash: str
+
+
+class QueryResponse(object):
+    # Current height of the source hypersync instance
+    archive_height: Optional[int]
+    # Next block to query for, the responses are paginated so,
+    #  the caller should continue the query from this block if they
+    #  didn't get responses up to the to_block they specified in the Query.
+    next_block: int
+    # Total time it took the hypersync instance to execute the query.
+    total_execution_time: int
+    # Response data
+    data: QueryResponseData
+    # Rollback guard, supposed to be used to detect rollbacks
+    rollback_guard: Optional[RollbackGuard]
+
+
+class EventResponse(object):
+    # Current height of the source hypersync instance
+    archive_height: Optional[int]
+    # Next block to query for, the responses are paginated so,
+    #  the caller should continue the query from this block if they
+    #  didn't get responses up to the to_block they specified in the Query.
+    next_block: int
+    # Total time it took the hypersync instance to execute the query.
+    total_execution_time: int
+    # Response data
+    data: list[Event]
+    # Rollback guard, supposed to be used to detect rollbacks
+    rollback_guard: Optional[RollbackGuard]
+
+
+class ArrowResponseData(object):
+    # pyarrow.Table
+    blocks: any
+    # pyarrow.Table
+    transactions: any
+    # pyarrow.Table
+    logs: any
+    # pyarrow.Table
+    traces: any
+    # pyarrow.Table
+    decoded_logs: any
+
+
+class ArrowResponse(object):
+    # Current height of the source hypersync instance
+    archive_height: Optional[int]
+    # Next block to query for, the responses are paginated so,
+    #  the caller should continue the query from this block if they
+    #  didn't get responses up to the to_block they specified in the Query.
+    next_block: int
+    # Total time it took the hypersync instance to execute the query.
+    total_execution_time: int
+    # Response data
+    data: ArrowResponseData
+    # Rollback guard, supposed to be used to detect rollbacks
+    rollback_guard: Optional[RollbackGuard]
+
+
+class ArrowStream(object):
+    inner: _ArrowStream
+
+    # receive the next response, returns None if the stream is finished
+    async def recv(self) -> Optional[ArrowResponse]:
+        await self.inner.recv()
+
+    # close the stream so it doesn't keep loading data in the background
+    async def close(self):
+        await self.inner.close()
+
+
+class EventStream(object):
+    inner: _EventStream
+
+    # receive the next response, returns None if the stream is finished
+    async def recv(self) -> Optional[EventResponse]:
+        await self.inner.recv()
+
+    # close the stream so it doesn't keep loading data in the background
+    async def close(self):
+        await self.inner.close()
+
+
+class QueryResponseStream(object):
+    inner: _QueryResponseStream
+
+    # receive the next response, returns None if the stream is finished
+    async def recv(self) -> Optional[QueryResponse]:
+        await self.inner.recv()
+
+    # close the stream so it doesn't keep loading data in the background
+    async def close(self):
+        await self.inner.close()
+
+
 class HypersyncClient:
     """Internal client to handle http requests and retries."""
 
@@ -526,7 +781,7 @@ class HypersyncClient:
         """Get the height of the Client instance with retries."""
         return await self.inner.get_height()
 
-    async def collect(self, query: Query, config: StreamConfig) -> any:
+    async def collect(self, query: Query, config: StreamConfig) -> QueryResponse:
         """
         Retrieves blocks, transactions, traces, and logs through a stream using the provided
         query and stream configuration.
@@ -538,11 +793,11 @@ class HypersyncClient:
         """
         return await self.inner.collect(asdict(query), asdict(config))
 
-    async def collect_events(self, query: Query, config: StreamConfig) -> any:
+    async def collect_events(self, query: Query, config: StreamConfig) -> EventResponse:
         """Retrieves events through a stream using the provided query and stream configuration."""
         return await self.inner.collect_events(asdict(query), asdict(config))
 
-    async def collect_arrow(self, query: Query, config: StreamConfig) -> any:
+    async def collect_arrow(self, query: Query, config: StreamConfig) -> ArrowResponse:
         """
         Retrieves blocks, transactions, traces, and logs in Arrow format through a stream using
         the provided query and stream configuration.
@@ -558,33 +813,33 @@ class HypersyncClient:
         """
         return await self.inner.collect_parquet(path, asdict(query), asdict(config))
 
-    async def get(self, query: Query) -> any:
+    async def get(self, query: Query) -> QueryResponse:
         """Executes query with retries and returns the response."""
         return await self.inner.get(asdict(query))
 
-    async def get_events(self, query: Query) -> any:
+    async def get_events(self, query: Query) -> EventResponse:
         """
         Add block, transaction and log fields selection to the query, executes it with retries
         and returns the response.
         """
         return await self.inner.get_events(asdict(query))
 
-    async def get_arrow(self, query: Query) -> any:
+    async def get_arrow(self, query: Query) -> ArrowResponse:
         """Executes query with retries and returns the response in Arrow format."""
         return await self.inner.get_arrow(asdict(query))
 
-    async def stream(self, query: Query, config: StreamConfig) -> any:
+    async def stream(self, query: Query, config: StreamConfig) -> QueryResponseStream:
         """Spawns task to execute query and return data via a channel."""
         return await self.inner.stream(asdict(query), asdict(config))
 
-    async def stream_events(self, query: Query, config: StreamConfig) -> any:
+    async def stream_events(self, query: Query, config: StreamConfig) -> EventStream:
         """
         Add block, transaction and log fields selection to the query and spawns task to execute it,
         returning data via a channel.
         """
         return await self.inner.stream_events(asdict(query), asdict(config))
 
-    async def stream_arrow(self, query: Query, config: StreamConfig) -> any:
+    async def stream_arrow(self, query: Query, config: StreamConfig) -> ArrowStream:
         """Spawns task to execute query and return data via a channel in Arrow format."""
         return await self.inner.stream_arrow(asdict(query), asdict(config))
 

@@ -246,6 +246,7 @@ def test_sig_to_topic0():
         "0x4ee0e06b2d2e4d1f06e75df9f2bad2c919d860fbf843f3b1f12de3264471a102" == topic0
     )
 
+
 async def main():
     print("hypersync-client-python")
     print(f"number of runs for each test: {NUM_BENCHMARK_RUNS}")

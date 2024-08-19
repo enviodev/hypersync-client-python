@@ -12,7 +12,7 @@ use crate::{
 
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ArrowResponse {
     /// Current height of the source hypersync instance
     pub archive_height: Option<u64>,
@@ -24,6 +24,8 @@ pub struct ArrowResponse {
     pub total_execution_time: u64,
     /// Response data
     pub data: ArrowResponseData,
+    /// Rollback guard, supposed to be used to detect rollbacks
+    pub rollback_guard: Option<RollbackGuard>,
 }
 
 #[pyclass]

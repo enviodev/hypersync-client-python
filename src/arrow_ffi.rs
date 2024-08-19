@@ -7,7 +7,10 @@ use polars_arrow::{
 };
 use pyo3::{ffi::Py_uintptr_t, types::PyModule, PyErr, PyObject, Python, ToPyObject};
 
-use crate::response::{ArrowResponse, ArrowResponseData};
+use crate::{
+    response::{ArrowResponse, ArrowResponseData},
+    types::RollbackGuard,
+};
 
 pub fn response_to_pyarrow(response: hypersync_client::ArrowResponse) -> Result<ArrowResponse> {
     let data = Python::with_gil(|py| {
@@ -34,6 +37,10 @@ pub fn response_to_pyarrow(response: hypersync_client::ArrowResponse) -> Result<
         next_block: response.next_block,
         total_execution_time: response.total_execution_time,
         data,
+        rollback_guard: response
+            .rollback_guard
+            .map(|rg| RollbackGuard::try_convert(rg).context("convert rollback guard"))
+            .transpose()?,
     })
 }
 

@@ -26,6 +26,9 @@ fn hypersync(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<HypersyncClient>()?;
     m.add_class::<Decoder>()?;
     m.add_class::<CallDecoder>()?;
+    m.add_class::<ArrowStream>()?;
+    m.add_class::<EventStream>()?;
+    m.add_class::<QueryResponseStream>()?;
     m.add_function(wrap_pyfunction!(decode::signature_to_topic0, m)?)?;
 
     Ok(())
