@@ -48,14 +48,14 @@ impl CallDecoder {
 
     pub fn decode_transactions_input<'py>(
         &self,
-        input: Vec<Transaction>,
+        txs: Vec<Transaction>,
         py: Python<'py>,
     ) -> PyResult<&'py PyAny> {
         let decoder = self.clone();
 
         future_into_py(py, async move {
             Ok(tokio::task::spawn_blocking(move || {
-                Python::with_gil(|py| decoder.decode_transactions_input_sync(input, py))
+                Python::with_gil(|py| decoder.decode_transactions_input_sync(txs, py))
             })
             .await
             .unwrap())
