@@ -189,13 +189,29 @@ class CallDecoder:
     def disable_checksummed_addresses(self):
         self.inner.disable_checksummed_addresses()
 
-    async def decode_input(self, input: str) -> list[DecodedSolValue]:
+    async def decode_inputs(self, inputs: list[str]) -> list[list[DecodedSolValue]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
-        return await self.inner.decode_input(input)
+        return await self.inner.decode_inputs(input)
 
-    def decode_input_sync(self, input: str) -> list[DecodedSolValue]:
+    def decode_inputs_sync(self, inputs: list[str]) -> list[list[DecodedSolValue]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
-        return self.inner.decode_input_sync(input)
+        return self.inner.decode_input_syncs(input)
+
+    async def decode_transactions_input(self, txs: list[Transaction]) -> list[list[DecodedSolValue]]:
+        """Parse log and return decoded event. Returns None if topic0 not found."""
+        return await self.inner.decode_transactions_input(txs)
+
+    def decode_transactions_input_sync(self, txs: list[Transaction]) -> list[list[DecodedSolValue]]:
+        """Parse log and return decoded event. Returns None if topic0 not found."""
+        return self.inner.decode_transactions_input_sync(txs)
+
+    async def decode_traces_input(self, traces: list[Trace]) -> list[list[DecodedSolValue]]:
+        """Parse log and return decoded event. Returns None if topic0 not found."""
+        return await self.inner.decode_traces_input(traces)
+
+    def decode_traces_input_sync(self, traces: list[Trace]) -> list[list[DecodedSolValue]]:
+        """Parse log and return decoded event. Returns None if topic0 not found."""
+        return self.inner.decode_traces_input_sync(traces)
 
 
 class DataType(StrEnum):
