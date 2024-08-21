@@ -34,10 +34,10 @@ async def main():
         if len(res.data.transactions) > 0:
             # Decode the log on a background thread so we don't block the event loop.
             # Can also use decoder.decode_logs_sync if it is more convenient.
-            for tx in res.data.transactions:
-                decoded_call = await decoder.decode_input(tx.input)
-                if decoded_call:
-                    print(f"Call decoded: addr: {decoded_call[0].val}, wad: {decoded_call[1].val}")
+            decoded_calls = await decoder.decode_transactions_input(res.data.transactions)
+            for call in decoded_calls:
+                if call:
+                    print(f"Call decoded: addr: {call[0].val}, wad: {call[1].val}")
 
         height = res.archive_height
         while height < res.next_block:
