@@ -1,9 +1,10 @@
 use anyhow::{Context, Result};
+use mimalloc::MiMalloc;
 use pyo3::prelude::*;
 use pyo3_asyncio::tokio::future_into_py;
-use response::{
-    convert_event_response, convert_response, ArrowStream, EventStream, QueryResponseStream,
-};
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 use std::sync::Arc;
 
@@ -20,6 +21,9 @@ use config::{ClientConfig, StreamConfig};
 use decode::Decoder;
 use decode_call::CallDecoder;
 use query::Query;
+use response::{
+    convert_event_response, convert_response, ArrowStream, EventStream, QueryResponseStream,
+};
 
 #[pymodule]
 fn hypersync(_py: Python, m: &PyModule) -> PyResult<()> {
