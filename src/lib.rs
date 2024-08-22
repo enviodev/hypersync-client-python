@@ -67,6 +67,16 @@ impl HypersyncClient {
         })
     }
 
+    /// Get the chain_id of the source hypersync instance
+    pub fn get_chain_id<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+        let inner = Arc::clone(&self.inner);
+        future_into_py::<_, u64>(py, async move {
+            let chain_id: u64 = inner.get_chain_id().await?;
+
+            Ok(chain_id)
+        })
+    }
+
     pub fn collect<'py>(
         &'py self,
         query: Query,

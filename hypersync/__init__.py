@@ -197,19 +197,27 @@ class CallDecoder:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return self.inner.decode_input_syncs(input)
 
-    async def decode_transactions_input(self, txs: list[Transaction]) -> list[list[DecodedSolValue]]:
+    async def decode_transactions_input(
+        self, txs: list[Transaction]
+    ) -> list[list[DecodedSolValue]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return await self.inner.decode_transactions_input(txs)
 
-    def decode_transactions_input_sync(self, txs: list[Transaction]) -> list[list[DecodedSolValue]]:
+    def decode_transactions_input_sync(
+        self, txs: list[Transaction]
+    ) -> list[list[DecodedSolValue]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return self.inner.decode_transactions_input_sync(txs)
 
-    async def decode_traces_input(self, traces: list[Trace]) -> list[list[DecodedSolValue]]:
+    async def decode_traces_input(
+        self, traces: list[Trace]
+    ) -> list[list[DecodedSolValue]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return await self.inner.decode_traces_input(traces)
 
-    def decode_traces_input_sync(self, traces: list[Trace]) -> list[list[DecodedSolValue]]:
+    def decode_traces_input_sync(
+        self, traces: list[Trace]
+    ) -> list[list[DecodedSolValue]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return self.inner.decode_traces_input_sync(traces)
 
@@ -794,8 +802,12 @@ class HypersyncClient:
         self.inner = _HypersyncClient(asdict(config))
 
     async def get_height(self) -> int:
-        """Get the height of the Client instance with retries."""
+        """Get the height of the hypersync server with retries."""
         return await self.inner.get_height()
+
+    async def get_chain_id(self) -> int:
+        """Get the chain_id of the hypersync server with retries."""
+        return await self.inner.get_chain_id()
 
     async def collect(self, query: Query, config: StreamConfig) -> QueryResponse:
         """
