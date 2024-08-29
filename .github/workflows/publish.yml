@@ -80,7 +80,7 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: 'true'
           manylinux: musllinux_1_2
-          before-script-linux: sudo apt-get install -y capnproto libcapnp-dev
+          before-script-linux: apk add --update-cache capnproto-dev
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
