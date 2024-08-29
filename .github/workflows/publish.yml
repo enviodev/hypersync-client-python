@@ -95,6 +95,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.platform.target }}
       - name: capnproto
         run: brew install capnp
       - name: Build wheels
