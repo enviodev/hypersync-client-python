@@ -30,22 +30,17 @@ jobs:
             target: x86
           - runner: ubuntu-latest
             target: aarch64
+        python-version: ["3.9", "3.10", "3.11", "3.12", "pypy-3.9", "pypy-3.10"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: |
-            3.9
-            3.10
-            3.11
-            3.12
-            pypy-3.9
-            pypy-3.10
+          python-version: ${{ matrix.python-version }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --zig
+          args: --release --out dist  --interpreter python${{ matrix.python-version }} --zig
           sccache: 'true'
           manylinux: auto
           before-script-linux: sudo apt-get install -y capnproto libcapnp-dev
@@ -64,17 +59,12 @@ jobs:
             target: x64
           - runner: windows-latest
             target: x86
+        python-version: ["3.9", "3.10", "3.11", "3.12", "pypy-3.9", "pypy-3.10"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: |
-            3.9
-            3.10
-            3.11
-            3.12
-            pypy-3.9
-            pypy-3.10
+          python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.platform.target }}
       - name: capnproto
         run: choco install capnproto
@@ -82,7 +72,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out dist --interpreter python${{ matrix.python-version }}
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -99,24 +89,19 @@ jobs:
             target: x86_64
           - runner: macos-14
             target: aarch64
+        python-version: ["3.9", "3.10", "3.11", "3.12", "pypy-3.9", "pypy-3.10"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: |
-            3.9
-            3.10
-            3.11
-            3.12
-            pypy-3.9
-            pypy-3.10
+          python-version: ${{ matrix.python-version }}
       - name: capnproto
         run: brew install capnp
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out dist --interpreter python${{ matrix.python-version }}
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
