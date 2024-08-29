@@ -39,6 +39,10 @@ jobs:
             3.10
             3.11
             3.12
+            pypy-3.9
+            pypy-3.10
+            pypy-3.11
+            pypy-3.12
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -71,6 +75,10 @@ jobs:
             3.10
             3.11
             3.12
+            pypy-3.9
+            pypy-3.10
+            pypy-3.11
+            pypy-3.12
           architecture: ${{ matrix.platform.target }}
       - name: capnproto
         run: choco install capnproto
@@ -104,6 +112,10 @@ jobs:
             3.10
             3.11
             3.12
+            pypy-3.9
+            pypy-3.10
+            pypy-3.11
+            pypy-3.12
       - name: capnproto
         run: brew install capnp
       - name: Build wheels
