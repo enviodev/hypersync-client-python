@@ -18,3 +18,11 @@ dynamic = ["version"]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
+
+# See https://www.maturin.rs/metadata.html for options
+[project.urls]
+homepage = "https://envio.dev/"
+documentation = "https://docs.envio.dev/docs/HyperSync/overview"
+repository = "https://github.com/enviodev/hypersync-client-python"
+
+
