@@ -231,6 +231,7 @@ class DataType(StrEnum):
     INT32 = "int32"
     FLOAT32 = "float32"
     FLOAT64 = "float64"
+    INTSTR = "intstr"
 
 
 class BlockField(StrEnum):

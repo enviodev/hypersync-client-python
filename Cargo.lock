@@ -619,9 +619,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.4"
+version = "1.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9157bbaa6b165880c27a4293a474c91cdcf265cc68cc829bf10be0964a391caf"
+checksum = "c31a0499c1dc64f458ad13872de75c0eb7e3fdb0e67964610c914b034fc5956e"
 dependencies = [
  "jobserver",
  "libc",
@@ -1353,7 +1353,7 @@ dependencies = [
 
 [[package]]
 name = "hypersync"
-version = "0.8.4"
+version = "0.8.5"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
@@ -1367,7 +1367,6 @@ dependencies = [
  "num-bigint",
  "polars-arrow",
  "prefix-hex",
- "psm",
  "pyo3",
  "pyo3-asyncio",
  "ruint",
@@ -1378,9 +1377,9 @@ dependencies = [
 
 [[package]]
 name = "hypersync-client"
-version = "0.17.1"
+version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c2ead724498b303ad453335e29b4ec505bedf1bef854c60b29f9900c92c2efd"
+checksum = "f6012e4303c710dd1889d031daac23b4f9e1b726c06d9f03fc192677ba285563"
 dependencies = [
  "alloy-dyn-abi",
  "alloy-json-abi",
@@ -2256,9 +2255,9 @@ dependencies = [
 
 [[package]]
 name = "psm"
-version = "0.1.21"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5787f7cda34e3033a72192c018bc5883100330f362ef279a8cbccfce8bb4e874"
+checksum = "200b9ff220857e53e184257720a14553b2f4aa02577d2ed9842d45d4b9654810"
 dependencies = [
  "cc",
 ]
