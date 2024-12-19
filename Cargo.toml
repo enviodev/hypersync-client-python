@@ -26,3 +26,5 @@ faster-hex = "0.9"
 ruint = "1"
 num-bigint = "0.4"
 mimalloc = "0.1.43"
+# force psm to older version so it compiles in Github pipeline https://github.com/rust-lang/stacker/issues/96
+psm = "0.1.21"
