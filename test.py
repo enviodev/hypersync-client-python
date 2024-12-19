@@ -74,6 +74,39 @@ QUERY = hypersync.Query(
 )
 
 
+async def test_intstr_mapping():
+    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    total_time = 0
+    for _ in range(NUM_BENCHMARK_RUNS):
+        start_time = time.time()
+
+        res = await client.collect_arrow(
+            QUERY,
+            hypersync.StreamConfig(
+                hex_output=HexOutput.PREFIXED,
+                column_mapping=hypersync.ColumnMapping(
+                    trace={
+                        TraceField.TRANSACTION_POSITION: DataType.INT32,
+                    },
+                    transaction={
+                        TransactionField.BLOCK_NUMBER: DataType.INT64,
+                        TransactionField.VALUE: DataType.FLOAT32,
+                    },
+                    decoded_log={
+                        "value": DataType.INTSTR,
+                    },
+                ),
+                event_signature="Transfer(address indexed from, address indexed to, uint256 value)",
+            ),
+        )
+
+        # print(res.data.decoded_logs.column("value"))
+
+        execution_time = (time.time() - start_time) * 1000
+        total_time += execution_time
+    print(f"intstr_mapping time: {format(execution_time, '.9f')}ms")
+
+
 async def test_create_parquet_folder():
     client = hypersync.HypersyncClient(hypersync.ClientConfig())
     total_time = 0
@@ -250,6 +283,7 @@ def test_sig_to_topic0():
 async def main():
     print("hypersync-client-python")
     print(f"number of runs for each test: {NUM_BENCHMARK_RUNS}")
+    await test_intstr_mapping()
     await test_send_req()
     await test_send_req_arrow()
     await test_send_events_req()
