@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use mimalloc::MiMalloc;
 use pyo3::prelude::*;
-use pyo3_asyncio::tokio::future_into_py;
+use pyo3_async_runtimes::tokio::future_into_py;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -26,7 +26,7 @@ use response::{
 };
 
 #[pymodule]
-fn hypersync(_py: Python, m: &PyModule) -> PyResult<()> {
+fn hypersync(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<HypersyncClient>()?;
     m.add_class::<Decoder>()?;
     m.add_class::<CallDecoder>()?;
@@ -58,7 +58,7 @@ impl HypersyncClient {
     }
 
     /// Get the height of the source hypersync instance
-    pub fn get_height<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn get_height<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py::<_, u64>(py, async move {
             let height: u64 = inner.get_height().await?;
@@ -68,7 +68,7 @@ impl HypersyncClient {
     }
 
     /// Get the chain_id of the source hypersync instance
-    pub fn get_chain_id<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn get_chain_id<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         future_into_py::<_, u64>(py, async move {
             let chain_id: u64 = inner.get_chain_id().await?;
@@ -82,7 +82,7 @@ impl HypersyncClient {
         query: Query,
         config: StreamConfig,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -105,7 +105,7 @@ impl HypersyncClient {
         query: Query,
         config: StreamConfig,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -128,7 +128,7 @@ impl HypersyncClient {
         query: Query,
         config: StreamConfig,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -152,7 +152,7 @@ impl HypersyncClient {
         query: Query,
         config: StreamConfig,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -168,7 +168,7 @@ impl HypersyncClient {
         })
     }
 
-    pub fn get<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn get<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -182,7 +182,11 @@ impl HypersyncClient {
         })
     }
 
-    pub fn get_events<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn get_events<'py>(
+        &'py self,
+        query: Query,
+        py: Python<'py>,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -196,7 +200,7 @@ impl HypersyncClient {
         })
     }
 
-    pub fn get_arrow<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn get_arrow<'py>(&'py self, query: Query, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -215,7 +219,7 @@ impl HypersyncClient {
         query: Query,
         config: StreamConfig,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -236,7 +240,7 @@ impl HypersyncClient {
         query: Query,
         config: StreamConfig,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -257,7 +261,7 @@ impl HypersyncClient {
         query: Query,
         config: StreamConfig,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
