@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use pyo3::{pyclass, pymethods, PyAny, PyErr, PyObject, PyResult, Python};
-use pyo3_asyncio::tokio::future_into_py;
+use pyo3::{pyclass, pymethods, Bound, PyAny, PyErr, PyObject, PyResult, Python};
+use pyo3_async_runtimes::tokio::future_into_py;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -54,7 +54,7 @@ impl QueryResponseStream {
 
 #[pymethods]
 impl QueryResponseStream {
-    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -63,7 +63,7 @@ impl QueryResponseStream {
         })
     }
 
-    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -94,7 +94,7 @@ impl EventStream {
 
 #[pymethods]
 impl EventStream {
-    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -103,7 +103,7 @@ impl EventStream {
         })
     }
 
-    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -131,7 +131,7 @@ impl ArrowStream {
 
 #[pymethods]
 impl ArrowStream {
-    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -140,7 +140,7 @@ impl ArrowStream {
         })
     }
 
-    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {

@@ -1,6 +1,6 @@
 [package]
 name = "hypersync"
-version = "0.8.5"
+version = "0.8.3"
 edition = "2021"
 
 [lib]
@@ -8,8 +8,12 @@ name = "hypersync"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.20", features = ["extension-module", "anyhow", "num-bigint"] }
-pyo3-asyncio = { version = "0.20", features = ["tokio-runtime"] }
+pyo3 = { version = "0.21", features = [
+  "extension-module",
+  "anyhow",
+  "num-bigint",
+] }
+pyo3-async-runtimes = { version = "0.21", features = ["tokio-runtime"] }
 tokio = "1"
 dict_derive = { git = "https://github.com/ozgrakkurt/dict-derive" }
 serde_json = "1"
