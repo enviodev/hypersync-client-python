@@ -44,6 +44,16 @@ pub struct LogSelection {
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
+pub struct AuthorizationSelection {
+    /// List of chain ids to match in the transaction authorizationList
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chain_id: Option<Vec<i64>>,
+    /// List of addresses to match in the transaction authorizationList
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub address: Option<Vec<String>>,
+}
+
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct TransactionSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "from")]
@@ -61,6 +71,9 @@ pub struct TransactionSelection {
     pub contract_address: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hash: Option<Vec<String>>,
+    /// If transaction.authorization_list matches any of these values, the transaction will be returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub authorization_list: Option<Vec<AuthorizationSelection>>,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]

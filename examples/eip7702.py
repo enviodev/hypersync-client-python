@@ -2,20 +2,19 @@
 
 import hypersync
 import asyncio
-from hypersync import BlockField, JoinMode, TransactionField, LogField, ClientConfig
+from hypersync import  TransactionField, ClientConfig
 
 async def main():
     client = hypersync.HypersyncClient(ClientConfig())
 
     # The query to run
     query = hypersync.Query(
-        # only get block 20224332
+        # only get block a small block range
         from_block=22490287,
-        to_block=22490287,
-        include_all_blocks=True,
-        join_mode=JoinMode.JOIN_ALL,
+        to_block=22490297,
+        transactions=[hypersync.TransactionSelection(authorization_list=[hypersync.AuthorizationSelection(address=["0x80296ff8d1ed46f8e3c7992664d13b833504c2bb"])])],
+        # TODO: add example with chain_id once operational
         field_selection=hypersync.FieldSelection(
-            block=[BlockField.NUMBER, BlockField.TIMESTAMP, BlockField.HASH],
             transaction=[
                 TransactionField.HASH,
                 TransactionField.AUTHORIZATION_LIST,
@@ -31,13 +30,16 @@ async def main():
     # res.next_block is equal to res.archive_height or query.to_block in case we specified an end block.
     res = await client.get(query)
 
-    print(f"Ran the query once.  Next block to query is {res.next_block}")
-
-    print(len(res.data.blocks))
-    print(len(res.data.transactions))
-
     for transaction in res.data.transactions:
-        print(transaction.authorization_list)
+        print("transaction: ", transaction.hash) 
+        for auth in transaction.authorization_list:
+            print("  auth: ")
+            print("    chain_id: ", auth.chain_id)
+            print("    address: ", auth.address)
+            print("    nonce: ", auth.nonce)
+            print("    y_parity: ", auth.y_parity)
+            print("    r: ", auth.r)
+            print("    s: ", auth.s)
 
     print(len(res.data.logs))
 

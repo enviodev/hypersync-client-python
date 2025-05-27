@@ -37,7 +37,7 @@ class Authorization(object):
     See ethereum rpc spec for the meaning of fields
     """
     # uint256
-    chain_id: Optional[str]
+    chain_id: Optional[int]
     # 20-byte hex
     address: Optional[str]
     # uint64
