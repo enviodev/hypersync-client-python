@@ -5,7 +5,11 @@ use polars_arrow::{
     datatypes::{ArrowDataType as DataType, Field},
     ffi,
 };
-use pyo3::{ffi::Py_uintptr_t, types::PyModule, PyErr, PyObject, Python, ToPyObject};
+use pyo3::{
+    ffi::Py_uintptr_t,
+    types::{PyAnyMethods, PyModule},
+    PyErr, PyObject, Python, ToPyObject,
+};
 
 use crate::{
     response::{ArrowResponse, ArrowResponseData},
@@ -14,19 +18,19 @@ use crate::{
 
 pub fn response_to_pyarrow(response: hypersync_client::ArrowResponse) -> Result<ArrowResponse> {
     let data = Python::with_gil(|py| {
-        let pyarrow = py.import("pyarrow")?;
+        let pyarrow = py.import_bound("pyarrow")?;
         Ok::<_, PyErr>(ArrowResponseData {
-            blocks: convert_batches_to_pyarrow_table(py, pyarrow, response.data.blocks)?,
+            blocks: convert_batches_to_pyarrow_table(py, &pyarrow, response.data.blocks)?,
             transactions: convert_batches_to_pyarrow_table(
                 py,
-                pyarrow,
+                &pyarrow,
                 response.data.transactions,
             )?,
-            logs: convert_batches_to_pyarrow_table(py, pyarrow, response.data.logs)?,
-            traces: convert_batches_to_pyarrow_table(py, pyarrow, response.data.traces)?,
+            logs: convert_batches_to_pyarrow_table(py, &pyarrow, response.data.logs)?,
+            traces: convert_batches_to_pyarrow_table(py, &pyarrow, response.data.traces)?,
             decoded_logs: convert_batches_to_pyarrow_table(
                 py,
-                pyarrow,
+                &pyarrow,
                 response.data.decoded_logs,
             )?,
         })
@@ -46,7 +50,7 @@ pub fn response_to_pyarrow(response: hypersync_client::ArrowResponse) -> Result<
 
 fn convert_batches_to_pyarrow_table<'py>(
     py: Python<'py>,
-    pyarrow: &'py PyModule,
+    pyarrow: &pyo3::Bound<'py, PyModule>,
     batches: Vec<ArrowBatch>,
 ) -> Result<PyObject> {
     if batches.is_empty() {

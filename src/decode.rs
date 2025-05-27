@@ -2,8 +2,10 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use hypersync_client::format::{Data, Hex, LogArgument};
-use pyo3::{exceptions::PyValueError, pyclass, pyfunction, pymethods, PyAny, PyResult, Python};
-use pyo3_asyncio::tokio::future_into_py;
+use pyo3::{
+    exceptions::PyValueError, pyclass, pyfunction, pymethods, Bound, PyAny, PyResult, Python,
+};
+use pyo3_async_runtimes::tokio::future_into_py;
 
 use crate::types::{DecodedEvent, DecodedSolValue, Event, Log};
 
@@ -36,7 +38,7 @@ impl Decoder {
         self.checksummed_addresses = false;
     }
 
-    pub fn decode_logs<'py>(&self, logs: Vec<Log>, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn decode_logs<'py>(&self, logs: Vec<Log>, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let decoder = self.clone();
 
         future_into_py(py, async move {
@@ -54,7 +56,11 @@ impl Decoder {
             .collect::<Vec<_>>()
     }
 
-    pub fn decode_events<'py>(&self, events: Vec<Event>, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn decode_events<'py>(
+        &self,
+        events: Vec<Event>,
+        py: Python<'py>,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let decoder = self.clone();
 
         future_into_py(py, async move {

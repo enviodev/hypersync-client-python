@@ -1,8 +1,8 @@
 use crate::types::{DecodedSolValue, Trace, Transaction};
 use anyhow::Context;
 use hypersync_client::format::{Data, Hex};
-use pyo3::{exceptions::PyValueError, pyclass, pymethods, PyAny, PyResult, Python};
-use pyo3_asyncio::tokio::future_into_py;
+use pyo3::{exceptions::PyValueError, pyclass, pymethods, Bound, PyAny, PyResult, Python};
+use pyo3_async_runtimes::tokio::future_into_py;
 use std::sync::Arc;
 
 #[pyclass]
@@ -34,15 +34,20 @@ impl CallDecoder {
         self.checksummed_addresses = false;
     }
 
-    pub fn decode_inputs<'py>(&self, input: Vec<String>, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn decode_inputs<'py>(
+        &self,
+        input: Vec<String>,
+        py: Python<'py>,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let decoder = self.clone();
 
         future_into_py(py, async move {
-            Ok(tokio::task::spawn_blocking(move || {
+            let result = tokio::task::spawn_blocking(move || {
                 Python::with_gil(|py| decoder.decode_inputs_sync(input, py))
             })
             .await
-            .unwrap())
+            .unwrap();
+            Ok(result)
         })
     }
 
@@ -50,15 +55,16 @@ impl CallDecoder {
         &self,
         txs: Vec<Transaction>,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let decoder = self.clone();
 
         future_into_py(py, async move {
-            Ok(tokio::task::spawn_blocking(move || {
+            let result = tokio::task::spawn_blocking(move || {
                 Python::with_gil(|py| decoder.decode_transactions_input_sync(txs, py))
             })
             .await
-            .unwrap())
+            .unwrap();
+            Ok(result)
         })
     }
 
@@ -66,15 +72,16 @@ impl CallDecoder {
         &self,
         traces: Vec<Trace>,
         py: Python<'py>,
-    ) -> PyResult<&'py PyAny> {
+    ) -> PyResult<Bound<'py, PyAny>> {
         let decoder = self.clone();
 
         future_into_py(py, async move {
-            Ok(tokio::task::spawn_blocking(move || {
+            let result = tokio::task::spawn_blocking(move || {
                 Python::with_gil(|py| decoder.decode_traces_input_sync(traces, py))
             })
             .await
-            .unwrap())
+            .unwrap();
+            Ok(result)
         })
     }
 

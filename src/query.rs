@@ -1,10 +1,9 @@
 use anyhow::{Context, Result};
 use hypersync_client::net_types;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct BlockSelection {
     /// Hash of a block, any blocks that have one of these hashes will be returned.
     /// Empty means match all.
@@ -16,9 +15,7 @@ pub struct BlockSelection {
     pub miner: Option<Vec<String>>,
 }
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct TraceSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "from")]
@@ -38,9 +35,7 @@ pub struct TraceSelection {
     pub sighash: Option<Vec<String>>,
 }
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct LogSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub address: Option<Vec<String>>,
@@ -48,9 +43,7 @@ pub struct LogSelection {
     pub topics: Option<Vec<Vec<String>>>,
 }
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct TransactionSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "from")]
@@ -70,9 +63,7 @@ pub struct TransactionSelection {
     pub hash: Option<Vec<String>>,
 }
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct FieldSelection {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block: Option<Vec<String>>,
@@ -84,9 +75,7 @@ pub struct FieldSelection {
     pub trace: Option<Vec<String>>,
 }
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct Query {
     /// The block to start the query from
     pub from_block: u64,

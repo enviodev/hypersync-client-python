@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use pyo3::{pyclass, pymethods, PyAny, PyErr, PyObject, PyResult, Python};
-use pyo3_asyncio::tokio::future_into_py;
+use pyo3::{pyclass, pymethods, Bound, PyAny, PyErr, PyObject, PyResult, Python};
+use pyo3_async_runtimes::tokio::future_into_py;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -30,13 +30,25 @@ pub struct ArrowResponse {
 
 #[pyclass]
 #[pyo3(get_all)]
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ArrowResponseData {
     pub blocks: PyObject,
     pub transactions: PyObject,
     pub logs: PyObject,
     pub traces: PyObject,
     pub decoded_logs: PyObject,
+}
+
+impl Clone for ArrowResponseData {
+    fn clone(&self) -> Self {
+        Python::with_gil(|py| Self {
+            blocks: self.blocks.clone_ref(py),
+            transactions: self.transactions.clone_ref(py),
+            logs: self.logs.clone_ref(py),
+            traces: self.traces.clone_ref(py),
+            decoded_logs: self.decoded_logs.clone_ref(py),
+        })
+    }
 }
 
 #[pyclass]
@@ -54,7 +66,7 @@ impl QueryResponseStream {
 
 #[pymethods]
 impl QueryResponseStream {
-    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -63,7 +75,7 @@ impl QueryResponseStream {
         })
     }
 
-    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -94,7 +106,7 @@ impl EventStream {
 
 #[pymethods]
 impl EventStream {
-    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -103,7 +115,7 @@ impl EventStream {
         })
     }
 
-    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -131,7 +143,7 @@ impl ArrowStream {
 
 #[pymethods]
 impl ArrowStream {
-    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn close<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {
@@ -140,7 +152,7 @@ impl ArrowStream {
         })
     }
 
-    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<&'py PyAny> {
+    pub fn recv<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
 
         future_into_py(py, async move {

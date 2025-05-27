@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=1.3,<2.0"]
+requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
 
 [project]
@@ -7,12 +7,12 @@ name = "hypersync"
 requires-python = ">=3.9"
 dependencies = ["strenum>=0.4.15,<0.4.16"]
 classifiers = [
-    "Programming Language :: Rust",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Development Status :: 3 - Alpha",
-    "Topic :: Database :: Front-Ends",
-    "Topic :: Software Development :: Libraries",
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Development Status :: 3 - Alpha",
+  "Topic :: Database :: Front-Ends",
+  "Topic :: Software Development :: Libraries",
 ]
 dynamic = ["version"]
 
@@ -24,5 +24,3 @@ features = ["pyo3/extension-module"]
 homepage = "https://envio.dev/"
 documentation = "https://docs.envio.dev/docs/HyperSync/overview"
 repository = "https://github.com/enviodev/hypersync-client-python"
-
-

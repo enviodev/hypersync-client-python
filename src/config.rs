@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
 use anyhow::{Context, Result};
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct StreamConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub column_mapping: Option<ColumnMapping>,
@@ -35,9 +34,7 @@ pub struct StreamConfig {
     pub response_bytes_floor: Option<i64>,
 }
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct ColumnMapping {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block: Option<HashMap<String, String>>,
@@ -58,9 +55,7 @@ impl StreamConfig {
     }
 }
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
 pub struct ClientConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,

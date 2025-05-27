@@ -205,11 +205,18 @@ pub struct DecodedEvent {
     pub body: Vec<DecodedSolValue>,
 }
 
-#[derive(Clone)]
 #[pyclass]
 #[pyo3(get_all)]
 pub struct DecodedSolValue {
     pub val: PyObject,
+}
+
+impl Clone for DecodedSolValue {
+    fn clone(&self) -> Self {
+        Python::with_gil(|py| Self {
+            val: self.val.clone_ref(py),
+        })
+    }
 }
 
 impl DecodedSolValue {
@@ -408,9 +415,9 @@ impl From<&simple_types::Trace> for Trace {
     }
 }
 
-#[derive(
-    Default, Clone, Serialize, Deserialize, dict_derive::FromPyObject, dict_derive::IntoPyObject,
-)]
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct RollbackGuard {
     /// Block number of the last scanned block
     pub block_number: i64,
