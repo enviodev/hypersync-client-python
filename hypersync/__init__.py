@@ -31,6 +31,25 @@ class AccessList(object):
     storage_keys: Optional[list[str]]
 
 
+class Authorization(object):
+    """Evm authorization object
+    
+    See ethereum rpc spec for the meaning of fields
+    """
+    # uint256
+    chain_id: Optional[int]
+    # 20-byte hex
+    address: Optional[str]
+    # uint64
+    nonce: Optional[int]
+    # 0 | 1
+    y_parity: Optional[int]
+    # 32-byte hex
+    r: Optional[str]
+    # 32-byte hex
+    s: Optional[str]
+
+
 class Transaction(object):
     block_hash: Optional[str]
     block_number: Optional[int]
@@ -51,6 +70,7 @@ class Transaction(object):
     max_fee_per_gas: Optional[str]
     chain_id: Optional[int]
     access_list: Optional[list[AccessList]]
+    authorization_list: Optional[list[Authorization]]
     max_fee_per_blob_gas: Optional[str]
     blob_versioned_hashes: Optional[list[str]]
     cumulative_gas_used: Optional[str]
@@ -369,6 +389,9 @@ class TransactionField(StrEnum):
     # and `accessed_storage_keys` global sets (introduced in EIP-2929).
     # A gas cost is charged, though at a discount relative to the cost of accessing outside the list.
     ACCESS_LIST = "access_list"
+    # The authorization list specifies a list of addresses and their associated authorization data
+    # for EIP-3074 transactions.
+    AUTHORIZATION_LIST = "authorization_list"
     # Max fee per data gas aka BlobFeeCap or blobGasFeeCap
     MAX_FEE_PER_BLOB_GAS = "max_fee_per_blob_gas"
     # It contains a list of fixed size hash(32 bytes)
@@ -519,6 +542,15 @@ class LogSelection:
 
 
 @dataclass
+class AuthorizationSelection:
+    """Selection criteria for authorization list filtering."""
+    # List of chain ids to match in the transaction authorizationList
+    chain_id: Optional[list[int]] = None
+    # List of addresses to match in the transaction authorizationList
+    address: Optional[list[str]] = None
+
+
+@dataclass
 class TransactionSelection:
     # Address the transaction should originate from. If transaction.from matches any of these, the transaction
     # will be returned. Keep in mind that this has an and relationship with to filter, so each transaction should
@@ -539,6 +571,8 @@ class TransactionSelection:
     # If transaction.hash matches any of these values the transaction will be returned.
     # empty means match all.
     hash: Optional[list[str]] = None
+    # If transaction.authorization_list matches any of these values, the transaction will be returned.
+    authorization_list: Optional[list[AuthorizationSelection]] = None
 
 
 @dataclass

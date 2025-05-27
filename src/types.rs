@@ -65,6 +65,7 @@ pub struct Transaction {
     pub max_fee_per_gas: Option<String>,
     pub chain_id: Option<i64>,
     pub access_list: Option<Vec<AccessList>>,
+    pub authorization_list: Option<Vec<Authorization>>,
     pub max_fee_per_blob_gas: Option<String>,
     pub blob_versioned_hashes: Option<Vec<String>>,
     pub cumulative_gas_used: Option<String>,
@@ -125,6 +126,45 @@ impl From<&format::AccessList> for AccessList {
                 .storage_keys
                 .as_ref()
                 .map(|arr| arr.iter().map(|x| x.encode_hex()).collect()),
+        }
+    }
+}
+
+/// Evm authorization object
+///
+/// See ethereum rpc spec for the meaning of fields
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone)]
+pub struct Authorization {
+    pub chain_id: Option<BigUint>,
+    pub address: Option<String>,
+    pub nonce: Option<i64>,
+    pub y_parity: Option<i64>,
+    pub r: Option<String>,
+    pub s: Option<String>,
+}
+
+impl From<&format::Authorization> for Authorization {
+    fn from(a: &format::Authorization) -> Self {
+        Self {
+            chain_id: Some(convert_bigint_unsigned(
+                ruint::aliases::U256::try_from_be_slice(&a.chain_id)
+                    .expect("convert chain_id bytes to U256"),
+            )),
+            address: Some(a.address.encode_hex()),
+            nonce: Some(
+                alloy_primitives::I64::try_from_be_slice(&a.nonce)
+                    .expect("convert nonce bytes to I64")
+                    .as_i64(),
+            ),
+            y_parity: Some(
+                alloy_primitives::I64::try_from_be_slice(&a.y_parity)
+                    .expect("convert y_parity bytes to I64")
+                    .as_i64(),
+            ),
+            r: Some(a.r.encode_hex()),
+            s: Some(a.s.encode_hex()),
         }
     }
 }
@@ -340,6 +380,10 @@ impl From<&simple_types::Transaction> for Transaction {
                 .access_list
                 .as_ref()
                 .map(|arr| arr.iter().map(AccessList::from).collect()),
+            authorization_list: t
+                .authorization_list
+                .as_ref()
+                .map(|arr| arr.iter().map(Authorization::from).collect()),
             max_fee_per_blob_gas: map_binary(&t.max_fee_per_blob_gas),
             blob_versioned_hashes: t
                 .blob_versioned_hashes
