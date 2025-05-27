@@ -6,7 +6,7 @@ from .hypersync import ArrowStream as _ArrowStream
 from .hypersync import EventStream as _EventStream
 from .hypersync import QueryResponseStream as _QueryResponseStream
 from typing import Optional, Dict
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from strenum import StrEnum
 
 
@@ -241,7 +241,7 @@ class BlockField(StrEnum):
     NUMBER = "number"
     # The Keccak 256-bit hash of the block
     HASH = "hash"
-    # The Keccak 256-bit hash of the parent block’s header, in its entirety; formally Hp.
+    # The Keccak 256-bit hash of the parent block's header, in its entirety; formally Hp.
     PARENT_HASH = "parent_hash"
     # A 64-bit value which, combined with the mixhash, proves that a sufficient amount of computation has been carried
     # out on this block; formally Hn.
@@ -265,7 +265,7 @@ class BlockField(StrEnum):
     # be transferred; formally Hc.
     MINER = "miner"
     # A scalar value corresponding to the difficulty level of this block. This can be calculated
-    # from the previous block’s difficulty level and the timestamp; formally Hd.
+    # from the previous block's difficulty level and the timestamp; formally Hd.
     DIFFICULTY = "difficulty"
     # The cumulative sum of the difficulty of all blocks that have been mined in the Ethereum network since the
     # inception of the network It measures the overall security and integrity of the Ethereum network.
@@ -279,7 +279,7 @@ class BlockField(StrEnum):
     GAS_LIMIT = "gas_limit"
     # A scalar value equal to the total gas used in transactions in this block; formally Hg.
     GAS_USED = "gas_used"
-    # A scalar value equal to the reasonable output of Unix’s time() at this block’s inception; formally Hs.
+    # A scalar value equal to the reasonable output of Unix's time() at this block's inception; formally Hs.
     TIMESTAMP = "timestamp"
     # Ommers/uncles header.
     UNCLES = "uncles"
@@ -323,7 +323,7 @@ class TransactionField(StrEnum):
     # A scalar value equal to the number of ancestor blocks. The genesis block has a number of
     # zero; formally Hi.
     BLOCK_NUMBER = "block_number"
-    # The 160-bit address of the message call’s sender
+    # The 160-bit address of the message call's sender
     FROM = "from"
     # A scalar value equal to the maximum amount of gas that should be used in executing
     # this transaction. This is paid up-front, before any computation is done and may not be increased later;
@@ -342,12 +342,12 @@ class TransactionField(StrEnum):
     INPUT = "input"
     # A scalar value equal to the number of transactions sent by the sender; formally Tn.
     NONCE = "nonce"
-    # The 160-bit address of the message call’s recipient or, for a contract creation
+    # The 160-bit address of the message call's recipient or, for a contract creation
     # transaction, ∅, used here to denote the only member of B0 ; formally Tt.
     TO = "to"
     # Index of the transaction in the block
     TRANSACTION_INDEX = "transaction_index"
-    # A scalar value equal to the number of Wei to be transferred to the message call’s recipient or,
+    # A scalar value equal to the number of Wei to be transferred to the message call's recipient or,
     # in the case of contract creation, as an endowment to the newly created account; formally Tv.
     VALUE = "value"
     # Replay protection value based on chain_id. See EIP-155 for more info.
@@ -645,6 +645,10 @@ class StreamConfig:
     hex_output: Optional[HexOutput] = None
     # Maximum batch size that could be used during dynamic adjustment.
     batch_size: Optional[int] = None
+    # Maximum batch size that could be used during dynamic adjustment.
+    max_batch_size: Optional[int] = None
+    # Minimum batch size that could be used during dynamic adjustment.
+    min_batch_size: Optional[int] = None
     # Number of async threads that would be spawned to execute different block ranges of queries.
     concurrency: Optional[int] = None
     # Max number of blocks to fetch in a single request.
@@ -655,6 +659,10 @@ class StreamConfig:
     max_num_logs: Optional[int] = None
     # Max number of traces to fetch in a single request.
     max_num_traces: Optional[int] = None
+    # Response bytes ceiling for dynamic batch size adjustment.
+    response_bytes_ceiling: Optional[int] = None
+    # Response bytes floor for dynamic batch size adjustment.
+    response_bytes_floor: Optional[int] = None
 
 
 @dataclass
@@ -800,7 +808,7 @@ class HypersyncClient:
 
     def __init__(self, config: ClientConfig):
         """Creates a new client with the given configuration."""
-        self.inner = _HypersyncClient(asdict(config))
+        self.inner = _HypersyncClient(config)
 
     async def get_height(self) -> int:
         """Get the height of the hypersync server with retries."""
@@ -820,18 +828,18 @@ class HypersyncClient:
         Each query runs until it reaches query.to, server height, any max_num_* query param,
         or execution timed out by server.
         """
-        return await self.inner.collect(asdict(query), asdict(config))
+        return await self.inner.collect(query, config)
 
     async def collect_events(self, query: Query, config: StreamConfig) -> EventResponse:
         """Retrieves events through a stream using the provided query and stream configuration."""
-        return await self.inner.collect_events(asdict(query), asdict(config))
+        return await self.inner.collect_events(query, config)
 
     async def collect_arrow(self, query: Query, config: StreamConfig) -> ArrowResponse:
         """
         Retrieves blocks, transactions, traces, and logs in Arrow format through a stream using
         the provided query and stream configuration.
         """
-        return await self.inner.collect_arrow(asdict(query), asdict(config))
+        return await self.inner.collect_arrow(query, config)
 
     async def collect_parquet(
         self, path: str, query: Query, config: StreamConfig
@@ -840,37 +848,37 @@ class HypersyncClient:
         Writes parquet file getting data through a stream using the provided path, query,
         and stream configuration.
         """
-        return await self.inner.collect_parquet(path, asdict(query), asdict(config))
+        return await self.inner.collect_parquet(path, query, config)
 
     async def get(self, query: Query) -> QueryResponse:
         """Executes query with retries and returns the response."""
-        return await self.inner.get(asdict(query))
+        return await self.inner.get(query)
 
     async def get_events(self, query: Query) -> EventResponse:
         """
         Add block, transaction and log fields selection to the query, executes it with retries
         and returns the response.
         """
-        return await self.inner.get_events(asdict(query))
+        return await self.inner.get_events(query)
 
     async def get_arrow(self, query: Query) -> ArrowResponse:
         """Executes query with retries and returns the response in Arrow format."""
-        return await self.inner.get_arrow(asdict(query))
+        return await self.inner.get_arrow(query)
 
     async def stream(self, query: Query, config: StreamConfig) -> QueryResponseStream:
         """Spawns task to execute query and return data via a channel."""
-        return await self.inner.stream(asdict(query), asdict(config))
+        return await self.inner.stream(query, config)
 
     async def stream_events(self, query: Query, config: StreamConfig) -> EventStream:
         """
         Add block, transaction and log fields selection to the query and spawns task to execute it,
         returning data via a channel.
         """
-        return await self.inner.stream_events(asdict(query), asdict(config))
+        return await self.inner.stream_events(query, config)
 
     async def stream_arrow(self, query: Query, config: StreamConfig) -> ArrowStream:
         """Spawns task to execute query and return data via a channel in Arrow format."""
-        return await self.inner.stream_arrow(asdict(query), asdict(config))
+        return await self.inner.stream_arrow(query, config)
 
 
 def preset_query_blocks_and_transactions(
