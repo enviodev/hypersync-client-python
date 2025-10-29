@@ -20,7 +20,7 @@ serde = { version = "1", features = ["derive"] }
 alloy-json-abi = "0.8"
 alloy-dyn-abi = "0.8"
 alloy-primitives = "0.8"
-hypersync-client = "0.17"
+hypersync-client = "0.20.0-user-agent-1"
 anyhow = "1"
 polars-arrow = { version = "0.42" }
 prefix-hex = "0.7"
