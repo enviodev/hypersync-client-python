@@ -9,9 +9,13 @@ import polars
 load_dotenv()
 
 async def collect_events():
+    bearer_token = os.getenv("ENVIO_API_TOKEN")
+    if not bearer_token:
+        raise ValueError("ENVIO_API_TOKEN environment variable is required. Please set it in your .env file.")
+    
     client = hypersync.HypersyncClient(ClientConfig(
         url="https://eth.hypersync.xyz/",
-        bearer_token=os.getenv("ENVIO_API_TOKEN")
+        bearer_token=bearer_token
     ))
 
     height = await client.get_height()
