@@ -1,6 +1,11 @@
+import os
+from dotenv import load_dotenv
 import hypersync
 import asyncio
-from hypersync import BlockField, TransactionField, LogField
+from hypersync import BlockField, TransactionField, LogField, ClientConfig
+
+# Load environment variables from a .env file
+load_dotenv()
 
 # the addresses we want to get data for
 addresses = [
@@ -18,7 +23,10 @@ def address_to_topic(address):
 
 async def main():
     # Create hypersync client using the mainnet hypersync endpoint (default)
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = hypersync.HypersyncClient(ClientConfig(
+        url="https://eth.hypersync.xyz/",
+        bearer_token=os.getenv("ENVIO_API_TOKEN")
+    ))
 
     address_topic_filter = list(map(address_to_topic, addresses))
 

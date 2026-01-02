@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "hypersync"
 requires-python = ">=3.9"
-dependencies = ["strenum>=0.4.15,<0.4.16"]
+dependencies = ["strenum>=0.4.15,<0.4.16", "python-dotenv>=1.0.0"]
 classifiers = [
   "Programming Language :: Rust",
   "Programming Language :: Python :: Implementation :: CPython",

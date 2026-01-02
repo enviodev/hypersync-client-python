@@ -1,11 +1,19 @@
+import os
+from dotenv import load_dotenv
 import hypersync
 import asyncio
+
+# Load environment variables from a .env file
+load_dotenv()
 
 # returns all logs from a contract within a block range
 
 async def main():
     # Create hypersync client using the mainnet hypersync endpoint (default)
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = hypersync.HypersyncClient(hypersync.ClientConfig(
+        url="https://eth.hypersync.xyz/",
+        bearer_token=os.getenv("ENVIO_API_TOKEN")
+    ))
 
     usdt_contract = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
 

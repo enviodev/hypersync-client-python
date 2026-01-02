@@ -1,10 +1,18 @@
+import os
+from dotenv import load_dotenv
 import hypersync
-from hypersync import LogSelection, LogField, DataType, FieldSelection, ColumnMapping, TransactionField
+from hypersync import LogSelection, LogField, DataType, FieldSelection, ColumnMapping, TransactionField, ClientConfig
 import asyncio
 import polars
 
+# Load environment variables from a .env file
+load_dotenv()
+
 async def collect_events():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = hypersync.HypersyncClient(ClientConfig(
+        url="https://eth.hypersync.xyz/",
+        bearer_token=os.getenv("ENVIO_API_TOKEN")
+    ))
 
     height = await client.get_height()
 

@@ -1,13 +1,21 @@
+import os
+from dotenv import load_dotenv
 import hypersync
 import asyncio
 import time
-from hypersync import LogField
+from hypersync import LogField, ClientConfig
+
+# Load environment variables from a .env file
+load_dotenv()
 
 DAI_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
 
 async def main():
     # Create hypersync client using the mainnet hypersync endpoint (default)
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = hypersync.HypersyncClient(ClientConfig(
+        url="https://eth.hypersync.xyz/",
+        bearer_token=os.getenv("ENVIO_API_TOKEN")
+    ))
 
     height = await client.get_height()
 

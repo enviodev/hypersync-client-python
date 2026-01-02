@@ -1,11 +1,17 @@
+import os
+from dotenv import load_dotenv
 import hypersync
 import asyncio
 from hypersync import BlockField, TransactionField, LogField, ClientConfig
 
-# For a more complex example with multiple events, see all-erc20-transfer-and-approve.py
+# Load environment variables from a .env file
+load_dotenv()
 
 async def main():
-    client = hypersync.HypersyncClient(ClientConfig())
+    client = hypersync.HypersyncClient(ClientConfig(
+        url="https://eth.hypersync.xyz/",
+        bearer_token=os.getenv("ENVIO_API_TOKEN")
+    ))
 
     # The query to run
     query = hypersync.Query(
