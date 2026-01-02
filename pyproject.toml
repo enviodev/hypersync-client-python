@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "hypersync"
 requires-python = ">=3.9"
-dependencies = ["strenum>=0.4.15,<0.4.16", "python-dotenv>=1.0.0"]
+dependencies = ["strenum>=0.4.15,<0.4.16"]
 classifiers = [
   "Programming Language :: Rust",
   "Programming Language :: Python :: Implementation :: CPython",
@@ -15,6 +15,14 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+examples = [
+  "python-dotenv>=1.0.0",
+  "polars==1.36.1",
+  "tqdm-loggable==0.2",
+  "pyarrow==22.0.0",
+]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
