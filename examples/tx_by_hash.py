@@ -1,30 +1,32 @@
+import os
+from dotenv import load_dotenv
 import hypersync
 import asyncio
-from hypersync import BlockField, JoinMode, TransactionField, LogField, ClientConfig
+from hypersync import (
+    JoinMode,
+    TransactionField,
+    ClientConfig,
+    TransactionSelection,
+)
+
+# Load environment variables from a .env file
+load_dotenv()
 
 async def main():
-    client = hypersync.HypersyncClient(ClientConfig())
+    bearer_token = os.getenv("ENVIO_API_TOKEN")
+    if not bearer_token:
+        raise ValueError("ENVIO_API_TOKEN environment variable is required. Please set it in your .env file.")
+    
+    client = hypersync.HypersyncClient(ClientConfig(
+        url="https://eth.hypersync.xyz/",
+        bearer_token=bearer_token
+    ))
 
     # The query to run
     query = hypersync.Query(
-        # only get block 20224332
-		from_block=20224332,
-        to_block=20224333,
-        include_all_blocks=True,
-        join_mode=JoinMode.JOIN_ALL,
+        from_block=0,
+        join_mode=JoinMode.JOIN_NOTHING,
         field_selection=hypersync.FieldSelection(
-            block=[BlockField.NUMBER, BlockField.TIMESTAMP, BlockField.HASH],
-            log=[
-                LogField.LOG_INDEX,
-                LogField.TRANSACTION_INDEX,
-                LogField.TRANSACTION_HASH,
-                LogField.DATA,
-                LogField.ADDRESS,
-                LogField.TOPIC0,
-                LogField.TOPIC1,
-                LogField.TOPIC2,
-                LogField.TOPIC3,
-			],
             transaction=[
                 TransactionField.BLOCK_NUMBER,
                 TransactionField.TRANSACTION_INDEX,
@@ -33,9 +35,15 @@ async def main():
                 TransactionField.TO,
                 TransactionField.VALUE,
                 TransactionField.INPUT,
-			]
-		),
-
+            ]
+        ),
+        transactions=[
+            TransactionSelection(
+                hash=[
+                    "0x410eec15e380c6f23c2294ad714487b2300dd88a7eaa051835e0da07f16fc282"
+                ]
+            )
+        ],
     )
 
     print("Running the query...")
@@ -47,8 +55,8 @@ async def main():
 
     print(f"Ran the query once.  Next block to query is {res.next_block}")
 
-    print(len(res.data.blocks))
-    print(len(res.data.transactions))
-    print(len(res.data.logs))
+    print(res.data.transactions[0].from_)
+    print(res.data.transactions[0].to)
+
 
 asyncio.run(main())

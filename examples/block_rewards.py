@@ -1,11 +1,22 @@
+import os
+from dotenv import load_dotenv
 import hypersync
 import asyncio
 import polars
 
+# Load environment variables from a .env file
+load_dotenv()
 
 async def run():
+    bearer_token = os.getenv("ENVIO_API_TOKEN")
+    if not bearer_token:
+        raise ValueError("ENVIO_API_TOKEN environment variable is required. Please set it in your .env file.")
+    
     client = hypersync.HypersyncClient(
-        hypersync.ClientConfig(url="http://167.235.0.227:2104")
+        hypersync.ClientConfig(
+            url="https://eth.hypersync.xyz/",
+            bearer_token=bearer_token
+        )
     )
 
     res = await client.collect_arrow(

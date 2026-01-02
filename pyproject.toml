@@ -16,6 +16,14 @@ classifiers = [
 ]
 dynamic = ["version"]
 
+[project.optional-dependencies]
+examples = [
+  "python-dotenv>=1.0.0",
+  "polars==1.36.1",
+  "tqdm-loggable==0.2",
+  "pyarrow==22.0.0",
+]
+
 [tool.maturin]
 features = ["pyo3/extension-module"]
 

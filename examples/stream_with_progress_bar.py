@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 import hypersync
 import asyncio
 import time
@@ -6,6 +8,9 @@ import datetime
 from hypersync import ClientConfig
 from tqdm_loggable.auto import tqdm
 from tqdm_loggable.tqdm_logging import tqdm_logging
+
+# Load environment variables from a .env file
+load_dotenv()
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -19,7 +24,14 @@ tqdm_logging.set_log_rate(datetime.timedelta(seconds=5))
 
 
 async def main():
-    client = hypersync.HypersyncClient(ClientConfig())
+    bearer_token = os.getenv("ENVIO_API_TOKEN")
+    if not bearer_token:
+        raise ValueError("ENVIO_API_TOKEN environment variable is required. Please set it in your .env file.")
+    
+    client = hypersync.HypersyncClient(ClientConfig(
+        url="https://eth.hypersync.xyz/",
+        bearer_token=bearer_token
+    ))
     height = await client.get_height()
     start_block = height - 8000
     total_blocks = height - start_block

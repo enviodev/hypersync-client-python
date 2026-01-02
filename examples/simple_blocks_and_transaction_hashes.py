@@ -1,11 +1,22 @@
+import os
+from dotenv import load_dotenv
 import hypersync
 import asyncio
+
+# Load environment variables from a .env file
+load_dotenv()
 
 # returns all blocks and the hashes of the transactions (not entire transaction objects) within a block range
 
 async def main():
-    # Create hypersync client using the mainnet hypersync endpoint (default)
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    bearer_token = os.getenv("ENVIO_API_TOKEN")
+    if not bearer_token:
+        raise ValueError("ENVIO_API_TOKEN environment variable is required. Please set it in your .env file.")
+
+    client = hypersync.HypersyncClient(hypersync.ClientConfig(
+        url="https://eth.hypersync.xyz/",
+        bearer_token=bearer_token
+    ))
 
     query = hypersync.preset_query_blocks_and_transaction_hashes(17_000_000, 17_000_050)
 

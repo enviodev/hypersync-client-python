@@ -14,12 +14,22 @@ Then activate the venv before use.
 source .venv/bin/activate
 ```
 
-Then istall the packages with pip.
+Then install the packages with pip.
 
 ```bash
 pip install -e .
 ```
 
-### Examples in `examples/`
+### Examples (`examples/`)
 
-There are a collection of self-contained examples you can look through. To run them run `python examples/<example>.py`.
+The `examples/` folder contains a set of examples you can explore. Before running any example, install the required dependencies with:
+
+```bash
+pip install -e .[examples]
+```
+
+Next, add your HyperSync token to the `.env` file. You can then run an example using:
+
+```bash
+python examples/<example>.py
+```
