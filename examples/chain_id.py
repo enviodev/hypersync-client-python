@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import hypersync
 import asyncio
-from hypersync import BlockField, TransactionField, LogField, ClientConfig
+from hypersync import ClientConfig
 
 # Load environment variables from a .env file
 load_dotenv()
