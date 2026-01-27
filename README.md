@@ -66,7 +66,7 @@ source $HOME/.cargo/env
 
 **Then install hypersync:**
 ```bash
-pip install --no-cache-dir --use-pep517 "hypersync==0.7.17"
+pip install --no-cache-dir --use-pep517 "hypersync==0.8.5"
 ```
 
 Common errors:
