@@ -8,7 +8,7 @@ use polars_arrow::{
 use pyo3::{
     ffi::Py_uintptr_t,
     types::{PyAnyMethods, PyModule},
-    PyErr, PyObject, Python, ToPyObject,
+    PyErr, PyObject, Python,
 };
 
 use crate::{
@@ -18,7 +18,7 @@ use crate::{
 
 pub fn response_to_pyarrow(response: hypersync_client::ArrowResponse) -> Result<ArrowResponse> {
     let data = Python::with_gil(|py| {
-        let pyarrow = py.import_bound("pyarrow")?;
+        let pyarrow = py.import("pyarrow")?;
         Ok::<_, PyErr>(ArrowResponseData {
             blocks: convert_batches_to_pyarrow_table(py, &pyarrow, response.data.blocks)?,
             transactions: convert_batches_to_pyarrow_table(
@@ -79,5 +79,5 @@ fn convert_batches_to_pyarrow_table<'py>(
         .call_method1("from_batches", (py_stream,))
         .context("call pyarrow::Table::from_batches")?;
 
-    Ok(table.to_object(py))
+    Ok(table.unbind())
 }
