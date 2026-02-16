@@ -1,20 +1,11 @@
 import os
-from dotenv import load_dotenv
 import hypersync
 import asyncio
 
-# Load environment variables from a .env file
-load_dotenv()
 
 async def main():
-    bearer_token = os.getenv("ENVIO_API_TOKEN")
-    if not bearer_token:
-        raise ValueError("ENVIO_API_TOKEN environment variable is required. Please set it in your .env file.")
-    
-    client = hypersync.HypersyncClient(hypersync.ClientConfig(
-        url="https://eth.hypersync.xyz/",
-        bearer_token=bearer_token
-    ))
+    cfg = hypersync.ClientConfig(bearer_token=os.environ.get("ENVIO_API_TOKEN"))
+    client = hypersync.HypersyncClient(cfg)
     height = await client.get_height()
 
     query = hypersync.preset_query_blocks_and_transactions(
