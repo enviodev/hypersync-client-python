@@ -5,7 +5,7 @@ use alloy_primitives::{Signed, U256};
 use anyhow::{Context, Result};
 use hypersync_client::{format, format::Hex, net_types, simple_types};
 use num_bigint::{BigInt, BigUint};
-use pyo3::{pyclass, IntoPy, PyObject, Python};
+use pyo3::{pyclass, IntoPyObject, PyObject, Python};
 use serde::{Deserialize, Serialize};
 
 /// Data relating to a single event (log)
@@ -222,35 +222,77 @@ impl Clone for DecodedSolValue {
 impl DecodedSolValue {
     pub fn new(py: Python, val: DynSolValue, checksummed_addresses: bool) -> Self {
         let val = match val {
-            DynSolValue::Bool(b) => b.into_py(py),
-            DynSolValue::Int(v, _) => convert_bigint_signed(v).into_py(py),
-            DynSolValue::Uint(v, _) => convert_bigint_unsigned(v).into_py(py),
-            DynSolValue::FixedBytes(bytes, _) => encode_prefix_hex(bytes.as_slice()).into_py(py),
+            DynSolValue::Bool(b) => b
+                .into_pyobject(py)
+                .unwrap()
+                .to_owned()
+                .into_any()
+                .unbind(),
+            DynSolValue::Int(v, _) => convert_bigint_signed(v)
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
+            DynSolValue::Uint(v, _) => convert_bigint_unsigned(v)
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
+            DynSolValue::FixedBytes(bytes, _) => encode_prefix_hex(bytes.as_slice())
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
             DynSolValue::Address(addr) => {
                 if !checksummed_addresses {
-                    encode_prefix_hex(addr.as_slice()).into_py(py)
+                    encode_prefix_hex(addr.as_slice())
+                        .into_pyobject(py)
+                        .unwrap()
+                        .into_any()
+                        .unbind()
                 } else {
-                    addr.to_checksum(None).into_py(py)
+                    addr.to_checksum(None)
+                        .into_pyobject(py)
+                        .unwrap()
+                        .into_any()
+                        .unbind()
                 }
             }
-            DynSolValue::Function(bytes) => encode_prefix_hex(bytes.as_slice()).into_py(py),
-            DynSolValue::Bytes(bytes) => encode_prefix_hex(bytes.as_slice()).into_py(py),
-            DynSolValue::String(s) => s.into_py(py),
+            DynSolValue::Function(bytes) => encode_prefix_hex(bytes.as_slice())
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
+            DynSolValue::Bytes(bytes) => encode_prefix_hex(bytes.as_slice())
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
+            DynSolValue::String(s) => s.into_pyobject(py).unwrap().into_any().unbind(),
             DynSolValue::Array(vals) => vals
                 .into_iter()
                 .map(|v| DecodedSolValue::new(py, v, checksummed_addresses))
                 .collect::<Vec<_>>()
-                .into_py(py),
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
             DynSolValue::FixedArray(vals) => vals
                 .into_iter()
                 .map(|v| DecodedSolValue::new(py, v, checksummed_addresses))
                 .collect::<Vec<_>>()
-                .into_py(py),
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
             DynSolValue::Tuple(vals) => vals
                 .into_iter()
                 .map(|v| DecodedSolValue::new(py, v, checksummed_addresses))
                 .collect::<Vec<_>>()
-                .into_py(py),
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
         };
 
         Self { val }
