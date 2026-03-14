@@ -80,6 +80,17 @@ pub struct Transaction {
     pub l1_gas_used: Option<String>,
     pub l1_fee_scalar: Option<f64>,
     pub gas_used_for_l1: Option<String>,
+    pub blob_gas_price: Option<String>,
+    pub blob_gas_used: Option<String>,
+    pub deposit_nonce: Option<String>,
+    pub deposit_receipt_version: Option<String>,
+    pub l1_base_fee_scalar: Option<String>,
+    pub l1_blob_base_fee: Option<String>,
+    pub l1_blob_base_fee_scalar: Option<String>,
+    pub l1_block_number: Option<String>,
+    pub mint: Option<String>,
+    pub sighash: Option<String>,
+    pub source_hash: Option<String>,
 }
 
 /// Evm withdrawal object
@@ -194,6 +205,10 @@ pub struct Trace {
     pub transaction_position: Option<i64>,
     pub kind: Option<String>,
     pub error: Option<String>,
+    pub sighash: Option<String>,
+    pub action_address: Option<String>,
+    pub balance: Option<String>,
+    pub refund_address: Option<String>,
 }
 
 /// Decoded EVM log
@@ -345,9 +360,9 @@ impl From<&simple_types::Block> for Block {
                 .as_ref()
                 .map(|w| w.iter().map(Withdrawal::from).collect()),
             l1_block_number: b.l1_block_number.map(|n| u64::from(n).try_into().unwrap()),
-            send_count: map_binary(&b.transactions_root),
-            send_root: map_binary(&b.transactions_root),
-            mix_hash: map_binary(&b.transactions_root),
+            send_count: map_binary(&b.send_count),
+            send_root: map_binary(&b.send_root),
+            mix_hash: map_binary(&b.mix_hash),
         }
     }
 }
@@ -377,7 +392,7 @@ impl From<&simple_types::Transaction> for Transaction {
             chain_id: t
                 .chain_id
                 .as_ref()
-                .map(|n| ruint::aliases::U256::from_be_slice(n).try_into().unwrap()),
+                .map(|n| ruint::aliases::U256::from_be_slice(n.as_ref()).try_into().unwrap()),
             access_list: t
                 .access_list
                 .as_ref()
@@ -392,7 +407,7 @@ impl From<&simple_types::Transaction> for Transaction {
             gas_used: map_binary(&t.gas_used),
             contract_address: map_binary(&t.contract_address),
             logs_bloom: map_binary(&t.logs_bloom),
-            kind: t.kind.map(|v| u8::from(v).into()),
+            kind: t.type_.map(|v| u8::from(v).into()),
             root: map_binary(&t.root),
             status: t.status.map(|v| v.to_u8().into()),
             l1_fee: map_binary(&t.l1_fee),
@@ -400,6 +415,17 @@ impl From<&simple_types::Transaction> for Transaction {
             l1_gas_used: map_binary(&t.l1_gas_used),
             l1_fee_scalar: t.l1_fee_scalar,
             gas_used_for_l1: map_binary(&t.gas_used_for_l1),
+            blob_gas_price: map_binary(&t.blob_gas_price),
+            blob_gas_used: map_binary(&t.blob_gas_used),
+            deposit_nonce: map_binary(&t.deposit_nonce),
+            deposit_receipt_version: map_binary(&t.deposit_receipt_version),
+            l1_base_fee_scalar: map_binary(&t.l1_base_fee_scalar),
+            l1_blob_base_fee: map_binary(&t.l1_blob_base_fee),
+            l1_blob_base_fee_scalar: map_binary(&t.l1_blob_base_fee_scalar),
+            l1_block_number: map_binary(&t.l1_block_number),
+            mint: map_binary(&t.mint),
+            sighash: map_binary(&t.sighash),
+            source_hash: map_binary(&t.source_hash),
         }
     }
 }
@@ -451,8 +477,12 @@ impl From<&simple_types::Trace> for Trace {
                 .map(|arr| arr.iter().map(|n| (*n).try_into().unwrap()).collect()),
             transaction_hash: map_binary(&t.transaction_hash),
             transaction_position: t.transaction_position.map(|n| n.try_into().unwrap()),
-            kind: t.kind.clone(),
+            kind: t.type_.clone(),
             error: t.error.clone(),
+            sighash: map_binary(&t.sighash),
+            action_address: map_binary(&t.action_address),
+            balance: map_binary(&t.balance),
+            refund_address: map_binary(&t.refund_address),
         }
     }
 }

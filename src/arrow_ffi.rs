@@ -1,9 +1,8 @@
 use anyhow::{Context, Result};
-use hypersync_client::ArrowBatch;
-use polars_arrow::{
-    array::StructArray,
-    datatypes::{ArrowDataType as DataType, Field},
-    ffi,
+use arrow::{
+    array::RecordBatch,
+    ffi_stream::FFI_ArrowArrayStream,
+    record_batch::RecordBatchIterator,
 };
 use pyo3::{
     ffi::Py_uintptr_t,
@@ -51,27 +50,19 @@ pub fn response_to_pyarrow(response: hypersync_client::ArrowResponse) -> Result<
 fn convert_batches_to_pyarrow_table<'py>(
     py: Python<'py>,
     pyarrow: &pyo3::Bound<'py, PyModule>,
-    batches: Vec<ArrowBatch>,
+    batches: Vec<RecordBatch>,
 ) -> Result<Py<PyAny>> {
     if batches.is_empty() {
         return Ok(py.None());
     }
 
-    let schema = batches.first().unwrap().schema.fields.clone();
-    let field = Field::new("a", DataType::Struct(schema), true);
+    let schema = batches[0].schema();
+    let reader = RecordBatchIterator::new(batches.into_iter().map(Ok), schema);
+    let mut ffi_stream = FFI_ArrowArrayStream::new(Box::new(reader));
 
-    let mut data = vec![];
-    for batch in batches {
-        data.push(
-            StructArray::new(field.data_type.clone(), batch.chunk.arrays().to_vec(), None).boxed(),
-        );
-    }
-
-    let iter = Box::new(data.into_iter().map(Ok)) as _;
-    let stream = Box::new(ffi::export_iterator(iter, field));
     let py_stream = pyarrow.getattr("RecordBatchReader")?.call_method1(
         "_import_from_c",
-        ((&*stream as *const ffi::ArrowArrayStream) as Py_uintptr_t,),
+        (&mut ffi_stream as *mut FFI_ArrowArrayStream as Py_uintptr_t,),
     )?;
     let table = pyarrow
         .getattr("Table")
