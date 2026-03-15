@@ -43,7 +43,7 @@ impl CallDecoder {
 
         future_into_py(py, async move {
             let result = tokio::task::spawn_blocking(move || {
-                Python::with_gil(|py| decoder.decode_inputs_sync(input, py))
+                Python::attach(|py| decoder.decode_inputs_sync(input, py))
             })
             .await
             .unwrap();
@@ -60,7 +60,7 @@ impl CallDecoder {
 
         future_into_py(py, async move {
             let result = tokio::task::spawn_blocking(move || {
-                Python::with_gil(|py| decoder.decode_transactions_input_sync(txs, py))
+                Python::attach(|py| decoder.decode_transactions_input_sync(txs, py))
             })
             .await
             .unwrap();
@@ -77,7 +77,7 @@ impl CallDecoder {
 
         future_into_py(py, async move {
             let result = tokio::task::spawn_blocking(move || {
-                Python::with_gil(|py| decoder.decode_traces_input_sync(traces, py))
+                Python::attach(|py| decoder.decode_traces_input_sync(traces, py))
             })
             .await
             .unwrap();

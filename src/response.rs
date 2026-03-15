@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use pyo3::{pyclass, pymethods, Bound, PyAny, PyErr, PyObject, PyResult, Python};
+use pyo3::{pyclass, pymethods, Bound, Py, PyAny, PyErr, PyResult, Python};
 use pyo3_async_runtimes::tokio::future_into_py;
 use tokio::sync::mpsc;
 
@@ -32,16 +32,16 @@ pub struct ArrowResponse {
 #[pyo3(get_all)]
 #[derive(Debug)]
 pub struct ArrowResponseData {
-    pub blocks: PyObject,
-    pub transactions: PyObject,
-    pub logs: PyObject,
-    pub traces: PyObject,
-    pub decoded_logs: PyObject,
+    pub blocks: Py<PyAny>,
+    pub transactions: Py<PyAny>,
+    pub logs: Py<PyAny>,
+    pub traces: Py<PyAny>,
+    pub decoded_logs: Py<PyAny>,
 }
 
 impl Clone for ArrowResponseData {
     fn clone(&self) -> Self {
-        Python::with_gil(|py| Self {
+        Python::attach(|py| Self {
             blocks: self.blocks.clone_ref(py),
             transactions: self.transactions.clone_ref(py),
             logs: self.logs.clone_ref(py),
