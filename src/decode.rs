@@ -43,7 +43,7 @@ impl Decoder {
 
         future_into_py(py, async move {
             Ok(tokio::task::spawn_blocking(move || {
-                Python::with_gil(|py| decoder.decode_logs_sync(logs, py))
+                Python::attach(|py| decoder.decode_logs_sync(logs, py))
             })
             .await
             .unwrap())
@@ -65,7 +65,7 @@ impl Decoder {
 
         future_into_py(py, async move {
             Ok(tokio::task::spawn_blocking(move || {
-                Python::with_gil(|py| decoder.decode_events_sync(events, py))
+                Python::attach(|py| decoder.decode_events_sync(events, py))
             })
             .await
             .unwrap())

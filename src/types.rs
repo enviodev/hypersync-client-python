@@ -5,7 +5,7 @@ use alloy_primitives::{Signed, U256};
 use anyhow::{Context, Result};
 use hypersync_client::{format, format::Hex, net_types, simple_types};
 use num_bigint::{BigInt, BigUint};
-use pyo3::{pyclass, IntoPyObject, PyObject, Python};
+use pyo3::{pyclass, IntoPyObject, Py, PyAny, Python};
 use serde::{Deserialize, Serialize};
 
 /// Data relating to a single event (log)
@@ -208,12 +208,12 @@ pub struct DecodedEvent {
 #[pyclass]
 #[pyo3(get_all)]
 pub struct DecodedSolValue {
-    pub val: PyObject,
+    pub val: Py<PyAny>,
 }
 
 impl Clone for DecodedSolValue {
     fn clone(&self) -> Self {
-        Python::with_gil(|py| Self {
+        Python::attach(|py| Self {
             val: self.val.clone_ref(py),
         })
     }
