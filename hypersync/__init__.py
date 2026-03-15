@@ -66,6 +66,17 @@ class Transaction(object):
     l1_gas_used: Optional[str]
     l1_fee_scalar: Optional[float]
     gas_used_for_l1: Optional[str]
+    blob_gas_price: Optional[str]
+    blob_gas_used: Optional[str]
+    deposit_nonce: Optional[str]
+    deposit_receipt_version: Optional[str]
+    l1_base_fee_scalar: Optional[str]
+    l1_blob_base_fee: Optional[str]
+    l1_blob_base_fee_scalar: Optional[str]
+    l1_block_number: Optional[str]
+    mint: Optional[str]
+    sighash: Optional[str]
+    source_hash: Optional[str]
 
 
 class Withdrawal(object):
@@ -128,6 +139,10 @@ class Trace(object):
     transaction_position: Optional[int]
     kind: Optional[str]
     error: Optional[str]
+    sighash: Optional[str]
+    action_address: Optional[str]
+    balance: Optional[str]
+    refund_address: Optional[str]
 
 
 class Event(object):
@@ -232,6 +247,8 @@ class DataType(StrEnum):
     FLOAT32 = "float32"
     FLOAT64 = "float64"
     INTSTR = "intstr"
+    DECIMAL256 = "decimal256"
+    DECIMAL128 = "decimal128"
 
 
 class BlockField(StrEnum):
@@ -401,6 +418,28 @@ class TransactionField(StrEnum):
     L1_FEE_SCALAR = "l1_fee_scalar"
     # Amount of gas spent on L1 calldata in units of L2 gas.
     GAS_USED_FOR_L1 = "gas_used_for_l1"
+    # Gas price for blob transactions
+    BLOB_GAS_PRICE = "blob_gas_price"
+    # Amount of blob gas used by this transaction
+    BLOB_GAS_USED = "blob_gas_used"
+    # Deposit transaction nonce for Optimism
+    DEPOSIT_NONCE = "deposit_nonce"
+    # Deposit receipt version for Optimism
+    DEPOSIT_RECEIPT_VERSION = "deposit_receipt_version"
+    # Base fee scalar for L1 cost calculation
+    L1_BASE_FEE_SCALAR = "l1_base_fee_scalar"
+    # L1 blob base fee for cost calculation
+    L1_BLOB_BASE_FEE = "l1_blob_base_fee"
+    # L1 blob base fee scalar for cost calculation
+    L1_BLOB_BASE_FEE_SCALAR = "l1_blob_base_fee_scalar"
+    # L1 block number associated with transaction
+    L1_BLOCK_NUMBER = "l1_block_number"
+    # Amount of ETH minted in this transaction
+    MINT = "mint"
+    # 4-byte function signature hash
+    SIGHASH = "sighash"
+    # Source hash for optimism transactions
+    SOURCE_HASH = "source_hash"
 
 
 class LogField(StrEnum):
@@ -489,6 +528,14 @@ class TraceField(StrEnum):
     # A string that indicates whether the transaction was successful or not.
     # None if successful, Reverted if not.
     ERROR = "error"
+    # 4-byte function signature hash for the trace
+    SIGHASH = "sighash"
+    # The action address for traces that create contracts
+    ACTION_ADDRESS = "action_address"
+    # The balance associated with the trace operation
+    BALANCE = "balance"
+    # The refund address for refund operations
+    REFUND_ADDRESS = "refund_address"
 
 
 class HexOutput(StrEnum):
@@ -663,6 +710,8 @@ class StreamConfig:
     response_bytes_ceiling: Optional[int] = None
     # Response bytes floor for dynamic batch size adjustment.
     response_bytes_floor: Optional[int] = None
+    # Stream data in reverse order.
+    reverse: Optional[bool] = None
 
 
 @dataclass
@@ -671,7 +720,9 @@ class ClientConfig:
 
     # HyperSync server URL.
     url: Optional[str] = None
-    # HyperSync server bearer token.
+    # HyperSync server API token.
+    api_token: Optional[str] = None
+    # Deprecated: use api_token instead. Kept for backward compatibility.
     bearer_token: Optional[str] = None
     # Milliseconds to wait for a response before timing out.
     http_req_timeout_millis: Optional[int] = None

@@ -32,6 +32,8 @@ pub struct StreamConfig {
     pub response_bytes_ceiling: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response_bytes_floor: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reverse: Option<bool>,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, FromPyObject)]
@@ -60,6 +62,9 @@ pub struct ClientConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_token: Option<String>,
+    /// Deprecated: use api_token instead. Kept for backward compatibility.
+    #[serde(skip_serializing_if = "Option::is_none", skip_deserializing)]
     pub bearer_token: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub http_req_timeout_millis: Option<i64>,
@@ -75,7 +80,12 @@ pub struct ClientConfig {
 
 impl ClientConfig {
     pub fn try_convert(&self) -> Result<hypersync_client::ClientConfig> {
-        let json = serde_json::to_vec(self).context("serialize to json")?;
+        // Handle bearer_token → api_token backward compatibility
+        let mut config = self.clone();
+        if config.api_token.is_none() && config.bearer_token.is_some() {
+            config.api_token = config.bearer_token.take();
+        }
+        let json = serde_json::to_vec(&config).context("serialize to json")?;
         serde_json::from_slice(&json).context("parse json")
     }
 }
