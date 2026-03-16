@@ -76,6 +76,8 @@ pub struct ClientConfig {
 impl ClientConfig {
     pub fn try_convert(&self) -> Result<hypersync_client::ClientConfig> {
         let json = serde_json::to_vec(self).context("serialize to json")?;
-        serde_json::from_slice(&json).context("parse json")
+        let cfg: hypersync_client::ClientConfig =
+            serde_json::from_slice(&json).context("parse json")?;
+        Ok(cfg.with_user_agent(format!("hscp/{}", env!("CARGO_PKG_VERSION"))))
     }
 }
