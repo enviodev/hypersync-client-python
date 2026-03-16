@@ -1,4 +1,5 @@
 # hypersync-client-python
+
 Python package for [Envio's](https://envio.dev/) HyperSync client written in Rust
 
 ## Setup
@@ -10,6 +11,7 @@ python -m venv .venv
 ```
 
 Then activate the venv before use.
+
 ```bash
 source .venv/bin/activate
 ```
@@ -22,14 +24,11 @@ pip install -e .
 
 ### Examples (`examples/`)
 
-The `examples/` folder contains a set of examples you can explore. Before running any example, install the required dependencies with:
+There are a collection of self-contained examples you can look through. To run them run `python examples/<example>.py`.
+
+For examples that call the HyperSync API, set the Envio API token via the environment:
 
 ```bash
-pip install -e .[examples]
-```
-
-Next, add your HyperSync token to the `.env` file. You can then run an example using:
-
-```bash
-python examples/<example>.py
+export ENVIO_API_TOKEN="your-token"
+python examples/chain_id.py
 ```

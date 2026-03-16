@@ -669,10 +669,10 @@ class StreamConfig:
 class ClientConfig:
     """Configuration for the hypersync client."""
 
+    # HyperSync server bearer token (required).
+    bearer_token: str
     # HyperSync server URL.
     url: Optional[str] = None
-    # HyperSync server bearer token.
-    bearer_token: Optional[str] = None
     # Milliseconds to wait for a response before timing out.
     http_req_timeout_millis: Optional[int] = None
     # Number of retries to attempt before returning error.
@@ -683,6 +683,13 @@ class ClientConfig:
     retry_base_ms: Optional[int] = None
     # Ceiling time for request backoff.
     retry_ceiling_ms: Optional[int] = None
+
+    def __post_init__(self) -> None:
+        if not (self.bearer_token and self.bearer_token.strip()):
+            raise ValueError(
+                "bearer_token is required. Pass it when creating ClientConfig, "
+                "e.g. ClientConfig(bearer_token=os.environ['ENVIO_API_TOKEN'])."
+            )
 
 
 class QueryResponseData(object):

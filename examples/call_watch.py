@@ -1,24 +1,15 @@
 import os
-from dotenv import load_dotenv
 import hypersync
 import asyncio
 import time
 from hypersync import TransactionField
 
-# Load environment variables from a .env file
-load_dotenv()
-
 DAI_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
 
 async def main():
-    bearer_token = os.getenv("ENVIO_API_TOKEN")
-    if not bearer_token:
-        raise ValueError("ENVIO_API_TOKEN environment variable is required. Please set it in your .env file.")
-
-    client = hypersync.HypersyncClient(hypersync.ClientConfig(
-        url="https://eth.hypersync.xyz/",
-        bearer_token=bearer_token
-    ))
+    # Create hypersync client using the mainnet hypersync endpoint (default)
+    cfg = hypersync.ClientConfig(bearer_token=os.environ.get("ENVIO_API_TOKEN"))
+    client = hypersync.HypersyncClient(cfg)
 
     # The query to run
     query = hypersync.Query(

@@ -1,22 +1,13 @@
 import os
-from dotenv import load_dotenv
 import hypersync
 import asyncio
-
-# Load environment variables from a .env file
-load_dotenv()
 
 # returns all logs of a the swap event from the uniswap v2 eth/rai swap pool within a block range
 
 async def main():
-    bearer_token = os.getenv("ENVIO_API_TOKEN")
-    if not bearer_token:
-        raise ValueError("ENVIO_API_TOKEN environment variable is required. Please set it in your .env file.")
-    
-    client = hypersync.HypersyncClient(hypersync.ClientConfig(
-        url="https://eth.hypersync.xyz/",
-        bearer_token=bearer_token
-    ))
+    # Create hypersync client using the ethereum mainnet hypersync endpoint (default)
+    cfg = hypersync.ClientConfig(bearer_token=os.environ.get("ENVIO_API_TOKEN"))
+    client = hypersync.HypersyncClient(cfg)
 
     eth_rai_swap_pool = "0x3e47D7B7867BAbB558B163F92fBE352161ACcb49"
 
