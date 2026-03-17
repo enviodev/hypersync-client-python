@@ -1,8 +1,6 @@
 use anyhow::{Context, Result};
 use arrow::{
-    array::RecordBatch,
-    ffi_stream::FFI_ArrowArrayStream,
-    record_batch::RecordBatchIterator,
+    array::RecordBatch, ffi_stream::FFI_ArrowArrayStream, record_batch::RecordBatchIterator,
 };
 use pyo3::{
     ffi::Py_uintptr_t,
