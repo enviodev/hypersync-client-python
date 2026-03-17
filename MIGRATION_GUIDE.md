@@ -13,7 +13,7 @@ hypersync-client-rust v1.0.2).
 | New DataType enum values | None (additive) |
 | StreamConfig.reverse | None (additive) |
 | Block field bug fixes | **Awareness** (may affect data) |
-| polars-arrow to arrow-rs | None (transparent to Python) |
+| polars-arrow to arrow-rs | No significant change, small internal changes (transparent to Python) |
 | alloy 0.8 to 1.1 | None (transparent to Python) |
 | DNS failover fix | None (transparent fix) |
 
