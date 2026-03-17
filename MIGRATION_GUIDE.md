@@ -2,7 +2,7 @@
 
 This guide covers all changes needed to migrate from hypersync-client-python
 v0.9.x (backed by hypersync-client-rust v0.17) to v0.10.0 (backed by
-hypersync-client-rust v1.0.1).
+hypersync-client-rust v1.0.2).
 
 ## Quick Summary
 
@@ -193,7 +193,23 @@ after upgrading.
 
 ---
 
-## 7. Internal Changes (No Action Required)
+## 7. Features Not Yet Available in Python
+
+The following features exist in the Rust client (hypersync-client-rust v1.0.2)
+but have **not yet been implemented** in the Python client:
+
+- **Height subscriptions via SSE** — The Rust client supports real-time block
+  height notifications using Server-Sent Events. This is not yet exposed in the
+  Python bindings.
+- **Cached query bodies** — The Rust client supports caching query bodies for
+  improved performance on repeated queries. This is not yet available in the
+  Python client.
+
+These features are planned for upcoming Python client releases.
+
+---
+
+## 8. Internal Changes (No Action Required)
 
 These changes are transparent to Python users but are documented for
 completeness:
@@ -237,7 +253,7 @@ harmless and has been preserved for simplicity.
 
 | Dependency | Old Version | New Version |
 |-----------|-------------|-------------|
-| `hypersync-client` | 0.17 | 1.0.1 |
+| `hypersync-client` | 0.17 | 1.0.2 |
 | `polars-arrow` | 0.42 | **Removed** |
 | `arrow` | — | 57 |
 | `alloy-dyn-abi` | 0.8 | 1.1 |
@@ -248,7 +264,7 @@ harmless and has been preserved for simplicity.
 
 ## Complete Version History (Rust Client)
 
-The Rust client went through these versions between 0.17 and 1.0.1:
+The Rust client went through these versions between 0.17 and 1.0.2:
 
 - **0.17.x** - Previous Python client dependency
 - **0.18.0-0.18.5** - Incremental improvements
@@ -259,3 +275,4 @@ The Rust client went through these versions between 0.17 and 1.0.1:
 - **0.23.0** (Dec 2025) - Pre-1.0 release
 - **1.0.0** (Jan 2026) - Stability milestone, streaming large payload fixes
 - **1.0.1** (Feb 2026) - DNS failover fixes, HTTP/2 support
+- **1.0.2** (Mar 2026) - Latest stable release

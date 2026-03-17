@@ -722,8 +722,6 @@ class ClientConfig:
     url: Optional[str] = None
     # HyperSync server API token.
     api_token: Optional[str] = None
-    # Deprecated: use api_token instead. Kept for backward compatibility.
-    bearer_token: Optional[str] = None
     # Milliseconds to wait for a response before timing out.
     http_req_timeout_millis: Optional[int] = None
     # Number of retries to attempt before returning error.
@@ -734,6 +732,8 @@ class ClientConfig:
     retry_base_ms: Optional[int] = None
     # Ceiling time for request backoff.
     retry_ceiling_ms: Optional[int] = None
+    # Deprecated: use api_token instead. Will be removed in a future release.
+    bearer_token: Optional[str] = None
 
 
 class QueryResponseData(object):

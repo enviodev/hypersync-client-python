@@ -2,9 +2,9 @@
 
 ## [0.10.0] - 2026-03-14
 
-### Upgrade to hypersync-client-rust v1.0.1
+### Upgrade to hypersync-client-rust v1.0.2
 
-This release upgrades the underlying Rust client from v0.17 to v1.0.1, bringing
+This release upgrades the underlying Rust client from v0.17 to v1.0.2, bringing
 DNS failover fixes, the arrow-rs migration, new blockchain data fields, and
 multiple API improvements.
 
@@ -109,10 +109,22 @@ config = hypersync.StreamConfig(reverse=True)
   correctly map to their respective fields. Previously, they were all incorrectly
   mapped to `transactions_root`.
 
+### Not Yet Implemented
+
+The following features are available in the Rust client (hypersync-client-rust)
+but have not yet been exposed in the Python client:
+
+- **Height subscriptions via SSE** - Real-time block height notifications using
+  Server-Sent Events.
+- **Cached query bodies** - Query body caching for improved performance on
+  repeated queries.
+
+These features are planned for upcoming Python client releases.
+
 ### Internal Changes
 
 - Bumped package version from 0.9.0 to 0.10.0.
-- Updated hypersync-client dependency from 0.17 to 1.0.1.
+- Updated hypersync-client dependency from 0.17 to 1.0.2.
 - Migrated Arrow FFI from polars-arrow to arrow-rs v57.
 - Updated alloy crates from 0.8 to 1.1.
 - EventResponse data is now a flat `Vec<Event>` instead of `Vec<Vec<Event>>`.
