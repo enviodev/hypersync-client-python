@@ -88,16 +88,13 @@ impl QueryResponseStream {
     }
 }
 
-type HSEventResponse =
-    hypersync_client::QueryResponse<Vec<Vec<hypersync_client::simple_types::Event>>>;
-
 #[pyclass]
 pub struct EventStream {
-    inner: Arc<tokio::sync::Mutex<mpsc::Receiver<Result<HSEventResponse>>>>,
+    inner: Arc<tokio::sync::Mutex<mpsc::Receiver<Result<hypersync_client::EventResponse>>>>,
 }
 
 impl EventStream {
-    pub fn new(inner: mpsc::Receiver<Result<HSEventResponse>>) -> Self {
+    pub fn new(inner: mpsc::Receiver<Result<hypersync_client::EventResponse>>) -> Self {
         Self {
             inner: Arc::new(tokio::sync::Mutex::new(inner)),
         }
@@ -283,20 +280,16 @@ pub fn convert_response(res: hypersync_client::QueryResponse) -> Result<QueryRes
     })
 }
 
-pub fn convert_event_response(
-    resp: hypersync_client::QueryResponse<Vec<Vec<hypersync_client::simple_types::Event>>>,
-) -> Result<EventResponse> {
-    let mut data = Vec::new();
-
-    for batch in resp.data {
-        for event in batch {
-            data.push(Event {
-                transaction: event.transaction.map(|v| Transaction::from(&*v)),
-                block: event.block.map(|v| Block::from(&*v)),
-                log: Log::from(&event.log),
-            });
-        }
-    }
+pub fn convert_event_response(resp: hypersync_client::EventResponse) -> Result<EventResponse> {
+    let data = resp
+        .data
+        .into_iter()
+        .map(|event| Event {
+            transaction: event.transaction.map(|v| Transaction::from(&*v)),
+            block: event.block.map(|v| Block::from(&*v)),
+            log: Log::from(&event.log),
+        })
+        .collect();
 
     Ok(EventResponse {
         archive_height: resp.archive_height.map(|v| v.try_into().unwrap()),
