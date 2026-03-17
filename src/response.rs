@@ -280,9 +280,7 @@ pub fn convert_response(res: hypersync_client::QueryResponse) -> Result<QueryRes
     })
 }
 
-pub fn convert_event_response(
-    resp: hypersync_client::EventResponse,
-) -> Result<EventResponse> {
+pub fn convert_event_response(resp: hypersync_client::EventResponse) -> Result<EventResponse> {
     let data = resp
         .data
         .into_iter()

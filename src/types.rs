@@ -237,12 +237,7 @@ impl Clone for DecodedSolValue {
 impl DecodedSolValue {
     pub fn new(py: Python, val: DynSolValue, checksummed_addresses: bool) -> Self {
         let val = match val {
-            DynSolValue::Bool(b) => b
-                .into_pyobject(py)
-                .unwrap()
-                .to_owned()
-                .into_any()
-                .unbind(),
+            DynSolValue::Bool(b) => b.into_pyobject(py).unwrap().to_owned().into_any().unbind(),
             DynSolValue::Int(v, _) => convert_bigint_signed(v)
                 .into_pyobject(py)
                 .unwrap()
@@ -389,10 +384,11 @@ impl From<&simple_types::Transaction> for Transaction {
             y_parity: map_binary(&t.y_parity),
             max_priority_fee_per_gas: map_binary(&t.max_priority_fee_per_gas),
             max_fee_per_gas: map_binary(&t.max_fee_per_gas),
-            chain_id: t
-                .chain_id
-                .as_ref()
-                .map(|n| ruint::aliases::U256::from_be_slice(n.as_ref()).try_into().unwrap()),
+            chain_id: t.chain_id.as_ref().map(|n| {
+                ruint::aliases::U256::from_be_slice(n.as_ref())
+                    .try_into()
+                    .unwrap()
+            }),
             access_list: t
                 .access_list
                 .as_ref()
