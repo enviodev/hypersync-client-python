@@ -3,7 +3,7 @@ requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "hypersync"
+name = "hypersync-temp"
 requires-python = ">=3.9"
 dependencies = ["strenum>=0.4.15"]
 classifiers = [
