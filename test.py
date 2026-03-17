@@ -1,6 +1,8 @@
+import os
 import hypersync
 import asyncio
 import time
+from dotenv import load_dotenv
 from hypersync import (
     DataType,
     BlockField,
@@ -10,12 +12,22 @@ from hypersync import (
     HexOutput,
 )
 
+# Load environment variables from a .env file
+load_dotenv()
+
 # for benchmarking times.  Will run the function this many times and take the
 # average
 NUM_BENCHMARK_RUNS = 1
 
 # The address we want to get all ERC20 transfers and transactions for
 ADDR = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
+
+def make_client():
+    bearer_token = os.getenv("ENVIO_API_TOKEN")
+    return hypersync.HypersyncClient(hypersync.ClientConfig(
+        url="https://eth.hypersync.xyz",
+        api_token=bearer_token,
+    ))
 
 QUERY = hypersync.Query(
     from_block=17123123,
@@ -75,7 +87,7 @@ QUERY = hypersync.Query(
 
 
 async def test_intstr_mapping():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
@@ -108,7 +120,7 @@ async def test_intstr_mapping():
 
 
 async def test_create_parquet_folder():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
@@ -139,7 +151,7 @@ async def test_create_parquet_folder():
 
 
 async def test_send_req():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
@@ -150,7 +162,7 @@ async def test_send_req():
 
 
 async def test_send_req_arrow():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     import pyarrow
 
     total_time = 0
@@ -169,7 +181,7 @@ async def test_send_req_arrow():
 
 
 async def test_send_events_req():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
@@ -180,7 +192,7 @@ async def test_send_events_req():
 
 
 async def test_get_height():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     total_time = 0
     for _ in range(NUM_BENCHMARK_RUNS):
         start_time = time.time()
@@ -191,7 +203,7 @@ async def test_get_height():
 
 
 async def test_decode_logs():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     res = await client.get(QUERY)
     decoder = hypersync.Decoder(
         ["Transfer(address indexed from, address indexed to, uint256 value)"]
@@ -206,7 +218,7 @@ async def test_decode_logs():
 
 
 async def test_decode_events():
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     res = await client.get_events(QUERY)
     decoder = hypersync.Decoder(
         ["Transfer(address indexed from, address indexed to, uint256 value)"]
@@ -222,7 +234,7 @@ async def test_decode_events():
 
 async def test_preset_query_blocks_and_transactions():
     start_time = time.time()
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     query = hypersync.preset_query_blocks_and_transactions(17_000_000, 17_000_010)
     res = await client.get(query)
     execution_time = (time.time() - start_time) * 1000
@@ -235,7 +247,7 @@ async def test_preset_query_blocks_and_transactions():
 
 async def test_preset_query_blocks_and_transaction_hashes():
     start_time = time.time()
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     query = hypersync.preset_query_blocks_and_transaction_hashes(17_000_000, 17_000_010)
     res = await client.get(query)
     execution_time = (time.time() - start_time) * 1000
@@ -248,7 +260,7 @@ async def test_preset_query_blocks_and_transaction_hashes():
 
 async def test_preset_query_logs():
     start_time = time.time()
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     contract_address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
     query = hypersync.preset_query_logs(contract_address, 17_000_000, 17_000_010)
     res = await client.get(query)
@@ -259,7 +271,7 @@ async def test_preset_query_logs():
 
 async def test_preset_query_logs_of_event():
     start_time = time.time()
-    client = hypersync.HypersyncClient(hypersync.ClientConfig())
+    client = make_client()
     contract_address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
     topic0 = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
     query = hypersync.preset_query_logs_of_event(
