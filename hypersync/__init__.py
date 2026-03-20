@@ -5,7 +5,8 @@ from .hypersync import signature_to_topic0 as _sig_to_topic0
 from .hypersync import ArrowStream as _ArrowStream
 from .hypersync import EventStream as _EventStream
 from .hypersync import QueryResponseStream as _QueryResponseStream
-from typing import Optional, Dict
+from .hypersync import RateLimitInfo as _RateLimitInfo
+from typing import Optional, Dict, Tuple
 from dataclasses import dataclass
 from strenum import StrEnum
 
@@ -734,6 +735,9 @@ class ClientConfig:
     retry_ceiling_ms: Optional[int] = None
     # Deprecated: use api_token instead. Will be removed in a future release.
     bearer_token: Optional[str] = None
+    # Whether to proactively sleep when the rate limit is exhausted instead of
+    # sending requests that will be rejected with 429. Default: True.
+    proactive_rate_limit_sleep: Optional[bool] = None
 
 
 class QueryResponseData(object):
@@ -758,6 +762,24 @@ class RollbackGuard(object):
     #
     # This might not be the first scanned block. It only includes blocks that are in memory (possible to be rolled back).
     first_parent_hash: str
+
+
+class RateLimitInfo(object):
+    """Rate limit information from server response headers."""
+    # Total request quota for the current window.
+    limit: Optional[int]
+    # Remaining budget in the current window.
+    remaining: Optional[int]
+    # Seconds until the rate limit window resets.
+    reset_secs: Optional[int]
+    # Budget consumed per request.
+    cost: Optional[int]
+    # Seconds to wait before retrying (from retry-after header).
+    retry_after_secs: Optional[int]
+    # Whether the rate limit quota has been exhausted.
+    is_rate_limited: bool
+    # Suggested number of seconds to wait before making another request.
+    suggested_wait_secs: Optional[int]
 
 
 class QueryResponse(object):
@@ -915,6 +937,18 @@ class HypersyncClient:
     async def get_arrow(self, query: Query) -> ArrowResponse:
         """Executes query with retries and returns the response in Arrow format."""
         return await self.inner.get_arrow(query)
+
+    async def get_with_rate_limit(self, query: Query) -> Tuple[QueryResponse, RateLimitInfo]:
+        """Executes query with retries and returns the response with rate limit info."""
+        return await self.inner.get_with_rate_limit(query)
+
+    def rate_limit_info(self) -> Optional[RateLimitInfo]:
+        """Get the most recently observed rate limit information. Returns None if no requests have been made yet."""
+        return self.inner.rate_limit_info()
+
+    async def wait_for_rate_limit(self) -> None:
+        """Wait until the current rate limit window resets. Returns immediately if no rate limit info observed or quota available."""
+        return await self.inner.wait_for_rate_limit()
 
     async def stream(self, query: Query, config: StreamConfig) -> QueryResponseStream:
         """Spawns task to execute query and return data via a channel."""
