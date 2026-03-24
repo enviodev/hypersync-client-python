@@ -1,7 +1,6 @@
 # hypersync-client-python
 Python package for [Envio's](https://envio.dev/) HyperSync client written in Rust
 
-> **Note:** This package is temporarily published to PyPI as **`hypersync-temp`** (`pip install hypersync-temp`). Main releases will return to **`hypersync`** once access is restored. The import name remains `import hypersync`.
 
 ## Setup
 
