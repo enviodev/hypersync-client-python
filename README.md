@@ -1,6 +1,6 @@
 # hypersync-client-python
 
-[![PyPI](https://img.shields.io/pypi/v/hypersync)](https://pypi.org/project/hypersync/) [![Python Versions](https://img.shields.io/pypi/pyversions/hypersync)](https://pypi.org/project/hypersync/) [![Discord](https://img.shields.io/badge/Discord-Join%20Chat-7289da?logo=discord&logoColor=white)](https://discord.gg/Q9qt8gZ2fX)
+[![PyPI](https://img.shields.io/pypi/v/hypersync)](https://pypi.org/project/hypersync/) [![Python Versions](https://img.shields.io/pypi/pyversions/hypersync)](https://pypi.org/project/hypersync/) [![Discord](https://img.shields.io/badge/Discord-Join%20Chat-7289da?logo=discord&logoColor=white)](https://discord.com/invite/envio)
 
 Python client for [Envio's](https://envio.dev) HyperSync. Built on top of the Rust implementation via PyO3 bindings, providing high-performance blockchain data access with a Pythonic interface.
 
@@ -138,6 +138,6 @@ This client is built on top of the [Rust client](https://github.com/enviodev/hyp
 
 ## Support
 
-- [Discord community](https://discord.gg/Q9qt8gZ2fX)
+- [Discord community](https://discord.com/invite/envio)
 - [GitHub Issues](https://github.com/enviodev/hypersync-client-python/issues)
 - [Documentation](https://docs.envio.dev/docs/HyperSync/overview)
