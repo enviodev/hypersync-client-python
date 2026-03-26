@@ -10,11 +10,13 @@ Python client for [Envio's](https://envio.dev) HyperSync. Built on top of the Ru
 
 HyperSync lets you query logs, transactions, blocks, and traces with flexible filtering and field selection, returning only the data you need.
 
+If you need a full indexing framework on top of HyperSync with GraphQL APIs and schema management, see [HyperIndex](https://github.com/enviodev/hyperindex).
+
 ## Features
 
-- **High performance**: Built on a Rust core for maximum efficiency
+- **High performance**: Built on a Rust core via PyO3 bindings for maximum efficiency
 - **Pythonic interface**: Full type hints and async/await support
-- **Multiple output formats**: JSON, Parquet, and CSV export
+- **Parquet export**: Stream results directly to Parquet files via `collect_parquet` for large dataset workflows
 - **Flexible queries**: Filter logs, transactions, blocks, and traces
 - **Field selection**: Retrieve only the fields you need
 - **Preset queries**: Built-in helpers for common query patterns
@@ -109,6 +111,17 @@ export ENVIO_API_TOKEN="your-token-here"
 python examples/simple_logs_of_event.py
 ```
 
+## What you can build
+
+The Python client is a natural fit for data science workflows, analytics pipelines, and any application that needs fast access to blockchain data from Python:
+
+- **Blockchain data analytics**: Scan entire chain histories in seconds and analyse results with pandas or numpy
+- **ETL pipelines**: Extract on-chain data and export to Parquet for downstream processing
+- **Research and dashboards**: Pull historical event data at scale for protocol research or monitoring
+- **Block explorers**: Power responsive interfaces with comprehensive real-time data access
+- **Monitoring tools**: Track wallet activity, token transfers, and contract events in near real-time
+- **Cross-chain applications**: Query unified data across 70+ EVM chains from a single client
+
 ## Documentation
 
 - [HyperSync Documentation](https://docs.envio.dev/docs/HyperSync/overview)
@@ -122,19 +135,22 @@ python examples/simple_logs_of_event.py
 HyperSync retrieves data up to 2000x faster than traditional JSON-RPC. Scanning all ERC-20 transfers on Ethereum mainnet takes seconds rather than hours.
 
 **Do I need an API token?**
-Yes, an API token is required. [Get one here](https://docs.envio.dev/docs/HyperSync/api-tokens).
+Yes. [Get one here](https://docs.envio.dev/docs/HyperSync/api-tokens).
 
 **Which networks are supported?**
 70+ EVM-compatible networks and Fuel. See the [full list](https://docs.envio.dev/docs/HyperSync/hypersync-supported-networks).
 
-**Can I export data to Parquet or CSV?**
-Yes. The client supports Parquet and CSV output formats. See `examples/parquet_blocks_and_transactions.py` for an example.
+**Can I export data to Parquet?**
+Yes. Parquet is the recommended format for large datasets. Use `collect_parquet` to stream results directly to a Parquet file. See `examples/parquet_blocks_and_transactions.py` for an example.
 
 **Is this suitable for data science workflows?**
-Yes. The Python client is a good fit for data analytics, research, and workflows that integrate with pandas, numpy, or other Python data tools.
+Yes. The Python client is a good fit for data analytics, research, and workflows that integrate with pandas, numpy, or other Python data tools. The docs explicitly recommend it for data science use cases.
 
 **How is this different from the Rust client?**
-This client is built on top of the [Rust client](https://github.com/enviodev/hypersync-client-rust) via PyO3 bindings. It provides a Pythonic interface with full type hints. The Rust client offers the lowest-level access with the least overhead.
+This client is built on top of the [Rust client](https://github.com/enviodev/hypersync-client-rust) via PyO3 bindings. It provides a Pythonic interface with full type hints. If you need the lowest-level access with the least overhead, use the Rust client directly.
+
+**What is the difference between HyperSync and HyperIndex?**
+HyperSync is the raw data access layer. Use it when you need direct access to blockchain data in your own pipeline. [HyperIndex](https://github.com/enviodev/hyperindex) is the full indexing framework built on top of HyperSync, with schema management, event handlers, and a GraphQL API.
 
 ## Support
 
