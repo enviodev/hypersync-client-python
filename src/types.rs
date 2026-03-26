@@ -224,8 +224,6 @@ pub struct RateLimitInfo {
     pub reset_secs: Option<u64>,
     /// Budget consumed per request.
     pub cost: Option<u64>,
-    /// Seconds to wait before retrying (from retry-after header).
-    pub retry_after_secs: Option<u64>,
     /// Whether the rate limit quota has been exhausted.
     pub is_rate_limited: bool,
     /// Suggested number of seconds to wait before making another request.
@@ -239,7 +237,6 @@ impl From<hypersync_client::RateLimitInfo> for RateLimitInfo {
             remaining: info.remaining,
             reset_secs: info.reset_secs,
             cost: info.cost,
-            retry_after_secs: info.retry_after_secs,
             is_rate_limited: info.is_rate_limited(),
             suggested_wait_secs: info.suggested_wait_secs(),
         }

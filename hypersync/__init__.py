@@ -774,8 +774,6 @@ class RateLimitInfo(object):
     reset_secs: Optional[int]
     # Budget consumed per request.
     cost: Optional[int]
-    # Seconds to wait before retrying (from retry-after header).
-    retry_after_secs: Optional[int]
     # Whether the rate limit quota has been exhausted.
     is_rate_limited: bool
     # Suggested number of seconds to wait before making another request.
