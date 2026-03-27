@@ -211,6 +211,32 @@ pub struct Trace {
     pub refund_address: Option<String>,
 }
 
+/// Rate limit information from server response headers.
+#[pyclass]
+#[pyo3(get_all)]
+#[derive(Clone)]
+pub struct RateLimitInfo {
+    /// Total request quota for the current window.
+    pub limit: Option<u64>,
+    /// Remaining budget in the current window.
+    pub remaining: Option<u64>,
+    /// Seconds until the rate limit window resets.
+    pub reset_secs: Option<u64>,
+    /// Budget consumed per request.
+    pub cost: Option<u64>,
+}
+
+impl From<hypersync_client::RateLimitInfo> for RateLimitInfo {
+    fn from(info: hypersync_client::RateLimitInfo) -> Self {
+        Self {
+            limit: info.limit,
+            remaining: info.remaining,
+            reset_secs: info.reset_secs,
+            cost: info.cost,
+        }
+    }
+}
+
 /// Decoded EVM log
 #[pyclass]
 #[pyo3(get_all)]

@@ -25,6 +25,7 @@ use query::Query;
 use response::{
     convert_event_response, convert_response, ArrowStream, EventStream, QueryResponseStream,
 };
+use types::RateLimitInfo;
 
 #[pymodule]
 fn hypersync(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -34,6 +35,7 @@ fn hypersync(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ArrowStream>()?;
     m.add_class::<EventStream>()?;
     m.add_class::<QueryResponseStream>()?;
+    m.add_class::<RateLimitInfo>()?;
     m.add_function(wrap_pyfunction!(decode::signature_to_topic0, m)?)?;
 
     Ok(())
@@ -210,6 +212,45 @@ impl HypersyncClient {
             let res = response_to_pyarrow(res).context("convert response to pyarrow")?;
 
             Ok(res)
+        })
+    }
+
+    /// Get blockchain data for a single query, with rate limit info
+    pub fn get_with_rate_limit<'py>(
+        &'py self,
+        query: Query,
+        py: Python<'py>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+
+        future_into_py(py, async move {
+            let query = query.try_convert().context("parse query")?;
+
+            let res = inner
+                .get_with_rate_limit(&query)
+                .await
+                .context("get with rate limit")?;
+
+            let response = convert_response(res.response).context("convert response")?;
+            let rate_limit: RateLimitInfo = res.rate_limit.into();
+
+            Ok((response, rate_limit))
+        })
+    }
+
+    /// Get the most recently observed rate limit information.
+    /// Returns None if no requests have been made yet.
+    pub fn rate_limit_info(&self) -> Option<RateLimitInfo> {
+        self.inner.rate_limit_info().map(|info| info.into())
+    }
+
+    /// Wait until the current rate limit window resets.
+    /// Returns immediately if no rate limit info observed or quota available.
+    pub fn wait_for_rate_limit<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+        future_into_py(py, async move {
+            inner.wait_for_rate_limit().await;
+            Ok(())
         })
     }
 
