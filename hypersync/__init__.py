@@ -774,10 +774,6 @@ class RateLimitInfo(object):
     reset_secs: Optional[int]
     # Budget consumed per request.
     cost: Optional[int]
-    # Whether the rate limit quota has been exhausted.
-    is_rate_limited: bool
-    # Suggested number of seconds to wait before making another request.
-    suggested_wait_secs: Optional[int]
 
 
 class QueryResponse(object):
