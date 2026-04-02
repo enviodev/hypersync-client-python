@@ -895,7 +895,7 @@ class QueryResponseStream(object):
 
     # receive the next response, returns None if the stream is finished
     async def recv(self) -> Optional[QueryResponse]:
-         await self.inner.recv()
+        await self.inner.recv()
 
     # close the stream so it doesn't keep loading data in the background
     async def close(self):
