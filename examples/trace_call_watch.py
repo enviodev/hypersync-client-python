@@ -1,10 +1,10 @@
 import os
 import asyncio
 import hypersync
-
+from dotenv import load_dotenv
 from hypersync import TraceField
 
-
+load_dotenv()
 
 ADDR = "1e037f97d730Cc881e77F01E409D828b0bb14de0"
 USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
@@ -14,7 +14,7 @@ SIG_OUT = "balanceOf(address)(uint256)"
 
 
 def make_client():
-    token = "5864d512-089a-4841-b4be-082bb19bc060"
+    token = os.getenv("ENVIO_API_TOKEN")
     if not token:
         raise ValueError("ENVIO_API_TOKEN is required")
     return hypersync.HypersyncClient(
