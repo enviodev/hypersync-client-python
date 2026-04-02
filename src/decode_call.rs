@@ -174,6 +174,11 @@ impl CallDecoder {
         signatures: Vec<String>,
         py: Python,
     ) -> Vec<Option<Vec<DecodedSolValue>>> {
+        assert_eq!(
++       outputs.len(),
++       signatures.len(),
++       "outputs and signatures must have the same length"
++        );
         outputs
             .into_iter()
             .zip(signatures.into_iter())
