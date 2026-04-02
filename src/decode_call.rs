@@ -131,4 +131,86 @@ impl CallDecoder {
                 .collect()
         })
     }
+
+    pub fn decode_outputs<'py>(
+        &self,
+        outputs: Vec<String>,
+        signatures: Vec<String>,
+        py: Python<'py>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let decoder = self.clone();
+
+        future_into_py(py, async move {
+            let result = tokio::task::spawn_blocking(move || {
+                Python::attach(|py| decoder.decode_outputs_sync(outputs, signatures, py))
+            })
+            .await
+            .unwrap();
+            Ok(result)
+        })
+    }
+
+    pub fn decode_traces_output<'py>(
+        &self,
+        traces: Vec<Trace>,
+        signatures: Vec<String>,
+        py: Python<'py>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let decoder = self.clone();
+
+        future_into_py(py, async move {
+            let result = tokio::task::spawn_blocking(move || {
+                Python::attach(|py| decoder.decode_traces_output_sync(traces, signatures, py))
+            })
+            .await
+            .unwrap();
+            Ok(result)
+        })
+    }
+
+    pub fn decode_outputs_sync(
+        &self,
+        outputs: Vec<String>,
+        signatures: Vec<String>,
+        py: Python,
+    ) -> Vec<Option<Vec<DecodedSolValue>>> {
+        outputs
+            .into_iter()
+            .zip(signatures.into_iter())
+            .map(|(output, sig)| self.decode_output_impl(output.as_str(), sig.as_str(), py))
+            .collect()
+    }
+
+    pub fn decode_traces_output_sync(
+        &self,
+        traces: Vec<Trace>,
+        signatures: Vec<String>,
+        py: Python,
+    ) -> Vec<Option<Vec<DecodedSolValue>>> {
+        traces
+            .into_iter()
+            .zip(signatures.into_iter())
+            .map(|(trace, sig)| {
+                trace
+                    .output
+                    .as_ref()
+                    .and_then(|out| self.decode_output_impl(out.as_str(), sig.as_str(), py))
+            })
+            .collect()
+    }
+
+    pub fn decode_output_impl(&self, output: &str, signature: &str, py: Python) -> Option<Vec<DecodedSolValue>> {
+        let data = Data::decode_hex(output).context("decode output").unwrap();
+        let decoded_output = self
+            .inner
+            .decode_output(&data, signature)
+            .context("decode output")
+            .unwrap();
+        decoded_output.map(|decoded| {
+            decoded
+                .into_iter()
+                .map(|value| DecodedSolValue::new(py, value, self.checksummed_addresses))
+                .collect()
+        })
+    }
 }

@@ -205,12 +205,12 @@ class CallDecoder:
         self.inner.disable_checksummed_addresses()
 
     async def decode_inputs(self, inputs: list[str]) -> list[list[DecodedSolValue]]:
-        """Parse log and return decoded event. Returns None if topic0 not found."""
-        return await self.inner.decode_inputs(input)
+        """Decode ABI-encoded calldata strings; forwards to the Rust CallDecoder."""
+        return await self.inner.decode_inputs(inputs)
 
-    def decode_inputs_sync(self, inputs: list[str]) -> list[list[DecodedSolValue]]:
-        """Parse log and return decoded event. Returns None if topic0 not found."""
-        return self.inner.decode_input_syncs(input)
+    def decode_inputs_sync(self, inputs: list[str]) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode ABI-encoded calldata strings; forwards to the Rust CallDecoder."""
+        return self.inner.decode_inputs_sync(inputs)
 
     async def decode_transactions_input(
         self, txs: list[Transaction]
@@ -235,6 +235,54 @@ class CallDecoder:
     ) -> list[list[DecodedSolValue]]:
         """Parse log and return decoded event. Returns None if topic0 not found."""
         return self.inner.decode_traces_input_sync(traces)
+
+    async def decode_outputs(
+        self, outputs: list[str], signatures: list[str]
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode ABI-encoded return data using the provided function signatures.
+
+        Each output hex string is decoded using the corresponding entry in
+        signatures. The signature must include output types, e.g.
+        'balanceOf(address)(uint256)'. Returns None for entries where decoding
+        fails or the output is empty.
+        """
+        return await self.inner.decode_outputs(outputs, signatures)
+
+    def decode_outputs_sync(
+        self, outputs: list[str], signatures: list[str]
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode ABI-encoded return data using the provided function signatures.
+
+        Each output hex string is decoded using the corresponding entry in
+        signatures. The signature must include output types, e.g.
+        'balanceOf(address)(uint256)'. Returns None for entries where decoding
+        fails or the output is empty.
+        """
+        return self.inner.decode_outputs_sync(outputs, signatures)
+
+    async def decode_traces_output(
+        self, traces: list[Trace], signatures: list[str]
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode ABI-encoded output data from traces using the provided function signatures.
+
+        Each trace's output field is decoded using the corresponding entry in
+        signatures. The signature must include output types, e.g.
+        'balanceOf(address)(uint256)'. Returns None for traces with no output
+        or where decoding fails.
+        """
+        return await self.inner.decode_traces_output(traces, signatures)
+
+    def decode_traces_output_sync(
+        self, traces: list[Trace], signatures: list[str]
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode ABI-encoded output data from traces using the provided function signatures.
+
+        Each trace's output field is decoded using the corresponding entry in
+        signatures. The signature must include output types, e.g.
+        'balanceOf(address)(uint256)'. Returns None for traces with no output
+        or where decoding fails.
+        """
+        return self.inner.decode_traces_output_sync(traces, signatures)
 
 
 class DataType(StrEnum):
@@ -823,7 +871,7 @@ class ArrowStream(object):
 
     # receive the next response, returns None if the stream is finished
     async def recv(self) -> Optional[ArrowResponse]:
-        await self.inner.recv()
+        return await self.inner.recv()
 
     # close the stream so it doesn't keep loading data in the background
     async def close(self):
@@ -835,7 +883,7 @@ class EventStream(object):
 
     # receive the next response, returns None if the stream is finished
     async def recv(self) -> Optional[EventResponse]:
-        await self.inner.recv()
+        return await self.inner.recv()
 
     # close the stream so it doesn't keep loading data in the background
     async def close(self):
@@ -847,7 +895,7 @@ class QueryResponseStream(object):
 
     # receive the next response, returns None if the stream is finished
     async def recv(self) -> Optional[QueryResponse]:
-        await self.inner.recv()
+         await self.inner.recv()
 
     # close the stream so it doesn't keep loading data in the background
     async def close(self):
