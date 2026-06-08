@@ -55,8 +55,16 @@ impl HypersyncClient {
 
         let config = config.try_convert().context("parse config")?;
 
+        // Identify this client (and its version) to the server. `hscp` =
+        // hypersync-client-python; the version is this package's version, which
+        // maturin derives from Cargo.toml's [package] version.
+        let user_agent = format!("hscp/{}", env!("CARGO_PKG_VERSION"));
+
         Ok(HypersyncClient {
-            inner: Arc::new(hypersync_client::Client::new(config).context("create client")?),
+            inner: Arc::new(
+                hypersync_client::Client::new_with_agent(config, user_agent)
+                    .context("create client")?,
+            ),
         })
     }
 
