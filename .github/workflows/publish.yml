@@ -141,3 +141,51 @@ jobs:
         with:
           command: upload
           args: --non-interactive --skip-existing wheels-*/*
+
+  tag-and-release:
+    name: Tag and GitHub Release
+    runs-on: ubuntu-latest
+    # Only after the wheels are published to PyPI.
+    needs: [release]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Resolve version from Cargo.toml
+        id: ver
+        run: |
+          VERSION=$(grep -m1 '^version = ' Cargo.toml | sed -E 's/^version = "([^"]+)".*/\1/')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not read version from Cargo.toml"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Create git tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          VERSION="${{ steps.ver.outputs.version }}"
+          # Idempotent: skip if this version was already tagged/released (e.g. a
+          # re-run after `maturin upload --skip-existing` skipped an existing wheel).
+          if gh release view "$TAG" >/dev/null 2>&1 || git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Release/tag $TAG already exists — nothing to do."
+            exit 0
+          fi
+          # Use this version's CHANGELOG section as release notes, if present.
+          NOTES=$(awk -v ver="$VERSION" '
+            $0 ~ ("^## \\[" ver "\\]") {flag=1; next}
+            flag && /^## \[/ {exit}
+            flag {print}
+          ' CHANGELOG.md)
+          if [ -z "$(echo "$NOTES" | tr -d '[:space:]')" ]; then
+            NOTES="Release $TAG"
+          fi
+          # `gh release create` creates the git tag at the current commit and the release.
+          printf '%s\n' "$NOTES" | gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --notes-file -
