@@ -691,11 +691,14 @@ class StreamConfig:
     event_signature: Optional[str] = None
     # Determines formatting of binary columns numbers into utf8 hex.
     hex_output: Optional[HexOutput] = None
-    # Maximum batch size that could be used during dynamic adjustment.
+    # Initial, deliberately-overestimated batch size used for the first wave of
+    # requests and as a fallback before any response density is measured. Default: 1000.
     batch_size: Optional[int] = None
-    # Maximum batch size that could be used during dynamic adjustment.
+    # Optional hard cap on the number of blocks per request. Leave unset (None) for
+    # no cap: an over-large request is truncated by the server and the remainder is
+    # backfilled in parallel, so overshoot self-corrects.
     max_batch_size: Optional[int] = None
-    # Minimum batch size that could be used during dynamic adjustment.
+    # Hard lower clamp on the projected block count, to avoid tiny ranges. Default: 200.
     min_batch_size: Optional[int] = None
     # Number of async threads that would be spawned to execute different block ranges of queries.
     concurrency: Optional[int] = None
@@ -707,10 +710,13 @@ class StreamConfig:
     max_num_logs: Optional[int] = None
     # Max number of traces to fetch in a single request.
     max_num_traces: Optional[int] = None
-    # Response bytes ceiling for dynamic batch size adjustment.
-    response_bytes_ceiling: Optional[int] = None
-    # Response bytes floor for dynamic batch size adjustment.
-    response_bytes_floor: Optional[int] = None
+    # Target response size in bytes. Each request's block span is projected from the
+    # most recently observed byte-density to aim each response at this size. Default: 400000.
+    response_bytes_target: Optional[int] = None
+    # Optional cap on the bytes of fetched-but-undelivered chunks held in the reorder
+    # buffer (consumer backpressure). Leave unset (None) for an adaptive cap that
+    # grows with the largest response seen.
+    max_buffered_bytes: Optional[int] = None
     # Stream data in reverse order.
     reverse: Optional[bool] = None
 

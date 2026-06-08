@@ -28,10 +28,14 @@ pub struct StreamConfig {
     pub max_num_logs: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_num_traces: Option<i64>,
+    /// Target response size in bytes; each request's block span is projected from
+    /// observed byte-density to aim each response at this size. Default: 400000.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub response_bytes_ceiling: Option<i64>,
+    pub response_bytes_target: Option<i64>,
+    /// Optional cap on undelivered reorder-buffer bytes (consumer backpressure).
+    /// Leave unset for an adaptive cap that grows with the largest response seen.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub response_bytes_floor: Option<i64>,
+    pub max_buffered_bytes: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reverse: Option<bool>,
 }
