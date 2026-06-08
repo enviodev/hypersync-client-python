@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0] - 2026-06-08
+
+### Python-specific user agent
+
+The client now identifies itself to the server as `hscp/<version>`
+(hypersync-client-python) instead of the core Rust client's default
+`hscr/<version>`, so traffic is attributed to the Python client and its
+release version.
+
 ## [1.1.0] - 2026-06-08
 
 ### Upgrade to hypersync-client-rust v1.3.0 (streaming engine v2)
