@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.1.0] - 2026-06-08
+
+### Upgrade to hypersync-client-rust v1.3.0 (streaming engine v2)
+
+Upgrades the underlying Rust client to v1.3.0, which rewrites the streaming
+engine to size each request from observed byte-density and backfill truncation
+gaps in parallel. See the
+[Stream Config & Tuning guide](https://docs.envio.dev/docs/HyperSync/stream-config-tuning).
+
+### StreamConfig changes (breaking)
+
+- **Removed** `response_bytes_floor` and `response_bytes_ceiling`.
+- **Added** `response_bytes_target` (default `400000`) — each request is sized to
+  land near this response size.
+- **Added** `max_buffered_bytes` — cap on the undelivered reorder buffer (consumer
+  backpressure). Leave unset for an adaptive cap that grows with the largest
+  response seen.
+- `max_batch_size` is now an optional **no-cap**: leave it unset for no
+  blocks-per-request cap (over-shoot self-corrects via parallel backfill).
+
+Migration: if you set `response_bytes_floor` / `response_bytes_ceiling`, switch to
+a single `response_bytes_target`. Most users can drop these and keep the defaults.
+
+### Rate limit API (breaking)
+
+- `get_with_rate_limit` now returns `(response, rate_limit)` where `response` is
+  `None` when the request was rate limited (HTTP 429) — inspect `rate_limit` and
+  retry. Previously it always returned a response.
+
 ## [0.10.0] - 2026-03-14
 
 ### Upgrade to hypersync-client-rust v1.0.2
