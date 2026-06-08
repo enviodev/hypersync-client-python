@@ -231,8 +231,18 @@ impl HypersyncClient {
                 .await
                 .context("get with rate limit")?;
 
-            let response = convert_response(res.response).context("convert response")?;
-            let rate_limit: RateLimitInfo = res.rate_limit.into();
+            // On HTTP 429 the response is `None`; inspect rate_limit and retry later.
+            let (response, rate_limit) = match res {
+                hypersync_client::RateLimitResponse::Success {
+                    response,
+                    rate_limit,
+                } => (
+                    Some(convert_response(response).context("convert response")?),
+                    rate_limit,
+                ),
+                hypersync_client::RateLimitResponse::RateLimited(rate_limit) => (None, rate_limit),
+            };
+            let rate_limit: RateLimitInfo = rate_limit.into();
 
             Ok((response, rate_limit))
         })
