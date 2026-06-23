@@ -56,7 +56,7 @@ pub struct TransactionSelection {
     pub status: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "type")]
-    pub kind: Option<Vec<String>>,
+    pub kind: Option<Vec<u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contract_address: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]

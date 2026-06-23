@@ -580,8 +580,9 @@ class TransactionSelection:
     sighash: Optional[list[str]] = None
     # If transaction.status matches this value, the transaction will be returned.
     status: Optional[int] = None
-    # If transaction.type matches any of these values, the transaction will be returned
-    kind: Optional[list[str]] = None
+    # If transaction.type matches any of these values, the transaction will be returned.
+    # Values are EIP-2718 transaction-type bytes (e.g. 0 legacy, 2 EIP-1559, 4 EIP-7702).
+    kind: Optional[list[int]] = None
     # If transaction.contract_address matches any of these values, the transaction will be returned.
     contract_address: Optional[list[str]] = None
     # If transaction.hash matches any of these values the transaction will be returned.
