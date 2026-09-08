@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1] - 2026-09-08
+
+### Upgrade to hypersync-client-rust v1.4.1
+
+Upgrades the underlying Rust client to v1.4.1. Passing `hex_output=PREFIXED`
+or `NON_PREFIXED` to `collect`, `collect_events`, `stream` or `stream_events`
+now raises a clear error explaining that `hex_output` only applies to the
+arrow and parquet methods, instead of failing inside the arrow decoder with
+`column address expected to be of type ... Binary but found Utf8`. Fixes #64.
+
 ## [1.2.0] - 2026-06-08
 
 ### Python-specific user agent
