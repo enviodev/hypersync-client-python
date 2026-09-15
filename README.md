@@ -111,6 +111,19 @@ export ENVIO_API_TOKEN="your-token-here"
 python examples/simple_logs_of_event.py
 ```
 
+## Logging
+
+The Rust core emits its logs through Python's `logging` module, so the usual handlers, formatters and levels apply. Records from the client arrive under the `hypersync_client` logger (HTTP internals arrive under `reqwest`):
+
+```python
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("hypersync_client").setLevel(logging.DEBUG)
+```
+
+Configure logging before the first client call. Log levels are cached on the Rust side once a record has been emitted, so changes made later may not take effect.
+
 ## What you can build
 
 The Python client is a natural fit for data science workflows, analytics pipelines, and any application that needs fast access to blockchain data from Python:
