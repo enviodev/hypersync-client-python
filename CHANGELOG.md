@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0] - 2026-10-29
+
+### Upgrade to hypersync-client-rust v2.0.0
+
+Upgrades the underlying Rust client to v2.0.0, which moves to Arrow 59. The
+Rust `arrow` dependency used to hand record batches to pyarrow is bumped from
+57 to 59 to match. The Python API is unchanged: data still crosses to pyarrow
+through the Arrow C data interface, which is stable across Arrow versions.
+
 ## [1.2.1] - 2026-09-08
 
 ### Upgrade to hypersync-client-rust v1.4.1
