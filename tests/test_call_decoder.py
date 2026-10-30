@@ -34,6 +34,20 @@ def test_decode_inputs_async():
     _assert_shape(asyncio.run(_decoder().decode_inputs([_TRANSFER_INPUT, _UNKNOWN_INPUT])))
 
 
+@pytest.mark.parametrize(
+    "bad_input",
+    [
+        "0x",  # plain ETH transfer
+        "0xa905",  # shorter than a selector
+        "0xa9059cbb0000",  # known selector, truncated args
+        "not hex",
+    ],
+)
+def test_decode_inputs_invalid_calldata_is_none(bad_input):
+    assert _decoder().decode_inputs_sync([bad_input]) == [None]
+    assert asyncio.run(_decoder().decode_inputs([bad_input])) == [None]
+
+
 @pytest.mark.xfail(
     strict=True,
     reason="hypersync-client's CallDecoder::decode_input doesn't strip the 4-byte selector; "

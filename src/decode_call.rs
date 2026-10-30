@@ -117,13 +117,15 @@ impl CallDecoder {
             .collect()
     }
 
+    /// Returns None for calldata that isn't hex, is shorter than a selector,
+    /// has an unknown selector, or doesn't ABI-decode; never panics.
     pub fn decode_impl(&self, input: &str, py: Python) -> Option<Vec<DecodedSolValue>> {
-        let input = Data::decode_hex(input).context("decode input").unwrap();
-        let decoded_input = self
-            .inner
-            .decode_input(&input)
-            .context("decode log")
-            .unwrap();
+        let input = Data::decode_hex(input).ok()?;
+        // Older hypersync-client versions index input[0..4] unchecked.
+        if input.len() < 4 {
+            return None;
+        }
+        let decoded_input = self.inner.decode_input(&input).ok()?;
         decoded_input.map(|decoded_input| {
             decoded_input
                 .into_iter()
