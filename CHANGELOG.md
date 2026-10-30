@@ -1,5 +1,27 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- `CallDecoder.decode_inputs` and `CallDecoder.decode_inputs_sync` no longer
+  crash: they forwarded the `input` builtin instead of `inputs`, and the sync
+  variant called a misspelled `decode_input_syncs` method (#55).
+- `CallDecoder` return type hints are now `list[Optional[list[DecodedSolValue]]]`,
+  and the docstrings say an entry is `None` when no signature matches (#56).
+- `CallDecoder` returns `None` for calldata it can't decode (empty `0x`, shorter
+  than a selector, truncated arguments, non-hex) instead of panicking with an
+  uncatchable `PanicException`.
+- `HypersyncClient.get_with_rate_limit` is typed as returning
+  `Optional[QueryResponse]`; the response is `None` on HTTP 429.
+
+### Known issue
+
+- Decoded `CallDecoder` argument values are still wrong: the underlying
+  hypersync-client decodes the 4-byte selector as part of the arguments. Fixed
+  upstream in enviodev/hypersync-client-rust#144; this needs a release that
+  bumps to it.
+
 ## [1.3.0] - 2026-10-29
 
 ### Upgrade to hypersync-client-rust v2.0.0

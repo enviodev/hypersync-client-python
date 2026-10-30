@@ -193,10 +193,10 @@ class Decoder:
 
 
 class CallDecoder:
-    """Decode logs parsing topics and log data."""
+    """Decode function call inputs (calldata) using function signatures."""
 
     def __init__(self, signatures: list[str]):
-        """Initialize decoder from event signatures."""
+        """Initialize decoder from function signatures, e.g. "transfer(address to, uint256 amount)"."""
         self.inner = _CallDecoder(signatures)
 
     def enable_checksummed_addresses(self):
@@ -205,36 +205,40 @@ class CallDecoder:
     def disable_checksummed_addresses(self):
         self.inner.disable_checksummed_addresses()
 
-    async def decode_inputs(self, inputs: list[str]) -> list[list[DecodedSolValue]]:
-        """Parse log and return decoded event. Returns None if topic0 not found."""
-        return await self.inner.decode_inputs(input)
+    async def decode_inputs(
+        self, inputs: list[str]
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode hex calldata strings. An entry is None if it is not valid calldata or matches no signature."""
+        return await self.inner.decode_inputs(inputs)
 
-    def decode_inputs_sync(self, inputs: list[str]) -> list[list[DecodedSolValue]]:
-        """Parse log and return decoded event. Returns None if topic0 not found."""
-        return self.inner.decode_input_syncs(input)
+    def decode_inputs_sync(
+        self, inputs: list[str]
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode hex calldata strings. An entry is None if it is not valid calldata or matches no signature."""
+        return self.inner.decode_inputs_sync(inputs)
 
     async def decode_transactions_input(
         self, txs: list[Transaction]
-    ) -> list[list[DecodedSolValue]]:
-        """Parse log and return decoded event. Returns None if topic0 not found."""
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode transaction inputs. An entry is None if the input is missing, is not valid calldata, or matches no signature."""
         return await self.inner.decode_transactions_input(txs)
 
     def decode_transactions_input_sync(
         self, txs: list[Transaction]
-    ) -> list[list[DecodedSolValue]]:
-        """Parse log and return decoded event. Returns None if topic0 not found."""
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode transaction inputs. An entry is None if the input is missing, is not valid calldata, or matches no signature."""
         return self.inner.decode_transactions_input_sync(txs)
 
     async def decode_traces_input(
         self, traces: list[Trace]
-    ) -> list[list[DecodedSolValue]]:
-        """Parse log and return decoded event. Returns None if topic0 not found."""
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode trace inputs. An entry is None if the input is missing, is not valid calldata, or matches no signature."""
         return await self.inner.decode_traces_input(traces)
 
     def decode_traces_input_sync(
         self, traces: list[Trace]
-    ) -> list[list[DecodedSolValue]]:
-        """Parse log and return decoded event. Returns None if topic0 not found."""
+    ) -> list[Optional[list[DecodedSolValue]]]:
+        """Decode trace inputs. An entry is None if the input is missing, is not valid calldata, or matches no signature."""
         return self.inner.decode_traces_input_sync(traces)
 
 
@@ -938,8 +942,13 @@ class HypersyncClient:
         """Executes query with retries and returns the response in Arrow format."""
         return await self.inner.get_arrow(query)
 
-    async def get_with_rate_limit(self, query: Query) -> Tuple[QueryResponse, RateLimitInfo]:
-        """Executes query with retries and returns the response with rate limit info."""
+    async def get_with_rate_limit(
+        self, query: Query
+    ) -> Tuple[Optional[QueryResponse], RateLimitInfo]:
+        """Executes query with retries and returns the response with rate limit info.
+
+        The response is None if the request was rate limited (HTTP 429).
+        """
         return await self.inner.get_with_rate_limit(query)
 
     def rate_limit_info(self) -> Optional[RateLimitInfo]:
