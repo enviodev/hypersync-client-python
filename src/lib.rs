@@ -29,6 +29,9 @@ use types::RateLimitInfo;
 
 #[pymodule]
 fn hypersync(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // Forward Rust `log` records to Python's `logging` module.
+    pyo3_log::try_init().ok();
+
     m.add_class::<HypersyncClient>()?;
     m.add_class::<Decoder>()?;
     m.add_class::<CallDecoder>()?;
@@ -51,8 +54,6 @@ impl HypersyncClient {
     /// Create a new client with given config
     #[new]
     fn new(config: ClientConfig) -> Result<HypersyncClient> {
-        env_logger::try_init().ok();
-
         let config = config.try_convert().context("parse config")?;
 
         // Identify this client (and its version) to the server. `hscp` =
