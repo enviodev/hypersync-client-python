@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- `CallDecoder.decode_inputs` and `CallDecoder.decode_inputs_sync` no longer
+  crash: they forwarded the `input` builtin instead of `inputs`, and the sync
+  variant called a misspelled `decode_input_syncs` method (#55).
+- `CallDecoder` return type hints are now `list[Optional[list[DecodedSolValue]]]`,
+  and the docstrings say an entry is `None` when no signature matches (#56).
+
 ## [1.3.0] - 2026-10-29
 
 ### Upgrade to hypersync-client-rust v2.0.0
